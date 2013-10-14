@@ -77,12 +77,13 @@ int main (int argc, char* argv[])
 				//debut_sequence = ...
 				//fin_sequence = ...
 				
+				
 				pvm_initsend(PvmDataDefault);
 				pvm_pkint(&debut_sequence, 1, 1);
-				pvm_pkint(&fin_sequence, 1, 1);
+				pvm_pkint(&pas, 1, 1);
 				pvm_send(source,0);
 				
-				debut_sequence = fin_sequence + 1;
+				debut_sequence += pas;
 				}
 			else{
 				fini = 1;
