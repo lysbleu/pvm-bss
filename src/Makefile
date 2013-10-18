@@ -7,12 +7,12 @@ CC=gcc
 all: craquage
 monothread: craquage
 multithread:
-$(OUTPUT_NAME	): craquage.o craquage_esclave
+$(OUTPUT_NAME): craquage.o craquage_esclave
 	$(CC) -o $@ $< $(LDFLAGS)
 craquage.o: craquage.c
 	$(CC) -o $@ -c $< $(CFLAGS)
 craquage_esclave: craquage_esclave.o
-	$(CC) -o $@ $< $(LDFLAGS) $(CFLAGS) 
+	$(CC) -o $@ $< $(LDFLAGS)
 craquage_esclave.o: craquage_esclave.c
 	$(CC) -o $@ -c $< $(CFLAGS)
 $(OUTPUT_MULTITHREAD_NAME): craquage_multithread.o craquage_esclave_multithread
@@ -20,7 +20,7 @@ $(OUTPUT_MULTITHREAD_NAME): craquage_multithread.o craquage_esclave_multithread
 craquage_multithread.o: craquage_multithread.c
 	$(CC) -o $@ -c $< $(CFLAGS)
 craquage_esclave_multithread: craquage_esclave_multithread.o
-	$(CC) -o $@ $< $(LDFLAGS) $(CFLAGS) 
+	$(CC) -o $@ $< $(LDFLAGS)
 craquage_esclave_multithread.o: craquage_esclave_multithread.c
 	$(CC) -o $@ -c $< $(CFLAGS)
 clean:

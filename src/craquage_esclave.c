@@ -55,7 +55,7 @@ int main (int argc, char* argv[])
 	
 	int parenttid = pvm_parent();
 	int max_travail, pas;
-	int travail_courant, bufid, info;
+	int travail_courant, bufid;
 	char * solution = (char*) calloc(longueur_mdp+1, sizeof(char)); ; 
 	
 	while(1)
@@ -72,7 +72,7 @@ int main (int argc, char* argv[])
 				
 			if (bufid < 0)
 			{
-				printf("Erreur de reception : %d\n", info);
+				printf("Erreur de reception : %d\n", bufid);
 				exit(1);
 			}
 			
