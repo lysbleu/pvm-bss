@@ -7,7 +7,7 @@ CC=gcc
 all: craquage
 monothread: craquage
 multithread:
-$(OUTPUT_NAME): craquage.o craquage_esclave
+$(OUTPUT_NAME	): craquage.o craquage_esclave
 	$(CC) -o $@ $< $(LDFLAGS)
 craquage.o: craquage.c
 	$(CC) -o $@ -c $< $(CFLAGS)
