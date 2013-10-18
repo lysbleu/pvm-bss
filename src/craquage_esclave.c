@@ -43,12 +43,12 @@ void conversion(int code, char* solution)
 
 int main (int argc, char* argv[])
 {
-	if(argc !=4)
+	if(argc !=3)
 	{
 		printf("usage Appeler craquage, et non cet executable : ./craquage_esclave r m\n");
 		return EXIT_FAILURE;
 	}
-	printf("debut\n");
+	fprintf(stderr, "debut\n");
 
 	// Initialisation des variables
 	int longueur_mdp = atoi(argv[1]);
@@ -82,6 +82,7 @@ int main (int argc, char* argv[])
 			}
 			
 			conversion(travail_courant, solution);
+			fprintf(stderr, "solution :%s\ntravail_courant :%d\nmax_travail :%d\n",solution, travail_courant, max_travail);
 		}
 		
 		incr(solution, longueur_mdp);

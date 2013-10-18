@@ -4,6 +4,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <math.h>
+#include <unistd.h>
 
 #define TAILLE_MAX  1000
 
@@ -33,6 +34,9 @@ int main (int argc, char* argv[])
 	char* mdp = (char*) calloc(longueur_mdp+1, sizeof(char));
 	strcpy(mdp, argv[3]);
 	
+	char* chemin = getcwd(NULL, 1000);
+	strcat(chemin, "/craquage_esclave");
+	
 	char *argv_esclave[2] ;
 	argv_esclave[0] = (char*) calloc(strlen(argv[2])+1, sizeof(char));
 	strcpy(argv_esclave[0],argv[2]);
@@ -48,7 +52,7 @@ int main (int argc, char* argv[])
 	char * solution;
 	
 	//initialisation des esclaves
-	pvm_spawn("craquage_esclave", argv_esclave, PvmTaskDefault,"", nb_esclaves, tids);
+	pvm_spawn(chemin, argv_esclave, PvmTaskDefault,"", nb_esclaves, tids);
 
 	/*
 	for(i=0; i<nb_esclaves;i++)
