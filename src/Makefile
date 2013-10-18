@@ -4,6 +4,7 @@ LDFLAGS=-lpvm3
 CFLAGS=-Wall -Wextra
 CC=gcc
 
+.PHONY
 all: craquage
 monothread: craquage
 multithread:
@@ -23,3 +24,7 @@ craquage_esclave_multithread: craquage_esclave_multithread.o
 	$(CC) -o $@ -c $< $(CFLAGS)
 craquage_esclave_multithread.o: craquage_esclave_multithread.c
 	$(CC) -o $@ -c $< $(CFLAGS)
+clean:
+rm *.o
+mrproper: clean
+rm craquage
