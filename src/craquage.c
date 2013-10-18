@@ -29,8 +29,8 @@ int main (int argc, char* argv[])
 	int i;
 	int trouve = 0;
 	int fini = 0;
-	int debut_sequence, fin_sequence, pas, fin_exec;
-	int bufid, info, bytes, type, source;*
+	int debut_sequence, pas_reel, pas, fin_exec;
+	int bufid, info, bytes, type, source;
 	char * solution;
 	
 	//initialisation des esclaves
@@ -47,8 +47,9 @@ int main (int argc, char* argv[])
 	//calcul du pas, fin_exec
 	debut_sequence = 0;
 	//pas ... TODO
-	fin_sequence = pas;
 	fin_exec = ((pow(longueur_mdp, 15)-1)*15)/14;
+	pas = fin_exec/nb_esclaves;
+
 	//boucle principale
 	while(!trouve && !fini)
 	{
@@ -77,10 +78,11 @@ int main (int argc, char* argv[])
 				//debut_sequence = ...
 				//fin_sequence = ...
 				
+				pas_reel = min(pas, fin_exec - debut_sequence);
 				
 				pvm_initsend(PvmDataDefault);
 				pvm_pkint(&debut_sequence, 1, 1);
-				pvm_pkint(&pas, 1, 1);
+				pvm_pkint(&pas_reel, 1, 1);
 				pvm_send(source,0);
 				
 				debut_sequence += pas;
