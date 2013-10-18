@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
+#include <string.h>
 
 void incr(char* solution, int longueur_max)
 {
@@ -54,7 +55,7 @@ int main (int argc, char* argv[])
 	
 	int parenttid = pvm_parent();
 	int max_travail, pas;
-	int travail_courant;
+	int travail_courant, bufid, info;
 	char * solution = (char*) calloc(longueur_mdp+1, sizeof(char)); ; 
 	
 	while(1)

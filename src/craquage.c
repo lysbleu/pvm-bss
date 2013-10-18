@@ -2,8 +2,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
+#include <string.h>
+#include <math.h>
 
 #define TAILLE_MAX  1000
+
+int min(int n1, int n2)
+{
+	if(n1 < n2)
+	{
+		return n1; 
+	}
+	else
+	{
+		return n2;
+	}
+}
 
 int main (int argc, char* argv[])
 {
@@ -14,7 +28,7 @@ int main (int argc, char* argv[])
 	}
 	// Initialisation des variables
 	int nb_esclaves = atoi(argv[1]);
-	int* tids = (int*) calloc(p, sizeof(int));
+	int* tids = (int*) calloc(nb_esclaves, sizeof(int));
 	int longueur_mdp = atoi(argv[2]);
 	char* mdp = (char*) calloc(longueur_mdp+1, sizeof(char));
 	strcpy(mdp, argv[3]);
@@ -66,7 +80,7 @@ int main (int argc, char* argv[])
 		{
 			case(0)://mot de passe trouve
 			solution = calloc(bytes, sizeof(char));
-			pvm_upkstr(solution, bytes + 1, 1);
+			pvm_upkstr(solution);
 			printf("La solution est : %s\n", solution);
 			trouve = 1;
 			break;	
