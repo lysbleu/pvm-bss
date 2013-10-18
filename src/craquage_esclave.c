@@ -48,6 +48,8 @@ int main (int argc, char* argv[])
 		printf("usage Appeler craquage, et non cet executable : ./craquage_esclave r m\n");
 		return EXIT_FAILURE;
 	}
+	printf("debut\n");
+
 	// Initialisation des variables
 	int longueur_mdp = atoi(argv[1]);
 	char* mdp = (char*) calloc(longueur_mdp+1, sizeof(char));
@@ -55,9 +57,12 @@ int main (int argc, char* argv[])
 	
 	int parenttid = pvm_parent();
 	int max_travail, pas;
+	max_travail = -1;
 	int travail_courant, bufid;
+	travail_courant = 0;
 	char * solution = (char*) calloc(longueur_mdp+1, sizeof(char)); ; 
 	
+	printf("avant while\n");
 	while(1)
 	{
 		if(travail_courant >= max_travail)
