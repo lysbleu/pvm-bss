@@ -3,6 +3,43 @@
 #include <stdlib.h>
 #include <malloc.h>
 
+void incr(char* solution, int longueur_max)
+{
+	int continuer = 1;
+	int i = 0;
+	while( continuer == 1 && i<longueur_max )
+	{
+		if(solution[i] == '\0')
+		{
+			solution[i] = 'a';
+			continuer = 0;
+		}
+		else if (solution[i] == 'o')
+		{
+			i++;
+		}
+		else
+		{
+			solution[i]++;
+			continuer = 0;
+		}
+	}
+}
+
+void conversion(int code, char* solution)
+{
+	int i = 0;
+	int reste;
+	
+	while(code != 0)
+	{
+		reste = code % 15;
+		solution[i] = 'a' + reste;
+		code -= reste;
+		code /= 15;
+	}
+}
+
 int main (int argc, char* argv[])
 {
 	if(argc !=4)
@@ -37,10 +74,19 @@ int main (int argc, char* argv[])
 				printf("Erreur de reception : %d\n", info);
 				exit(1);
 			}
+			
+			conversion(travail_courant, solution);
 		}
 		
-		//faire les tests et incrementer
-
+		incr(solution, longueur_mdp);
+		
+		if (strcmp(solution, mdp) == 0)
+		{
+			pvm_initsend(PvmDataDefault);
+			pvm_pkstr(solution);
+			pvm_send(parenttid,0);
+		}
+		
 	}
 	
 	pvm_exit();
