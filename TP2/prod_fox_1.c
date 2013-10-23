@@ -3,6 +3,19 @@
 #include <mpi.h>
 #include <math.h>
 
+void affiche_matrice(int *A, int n)
+{
+	int i,j;
+	for(i=0; i<n; i++)
+	{
+		for(j=0; j<n; j++)
+		{
+			printf("%3d  ", A[j+i*n]);
+		}
+		printf("\n");
+	}
+}
+
 void produit_matriciel(int* C, int* A, int* B, int n)
 {
 	int i, j, k;
@@ -41,7 +54,6 @@ int main( int argc, char **argv ) {
 	}
 	
 	int nb_blocs_ligne = sqrt(nb_blocs);
-	//~ printf("n: %d\nnb: %d\n",n,nb_blocs_ligne);
 	
 	if (n % nb_blocs_ligne != 0)
 	{
@@ -51,7 +63,7 @@ int main( int argc, char **argv ) {
 	}
 
 	int taille_bloc = n/nb_blocs_ligne;
-	
+		
 	int i,j,k;
 	int rank_source, rank_dest;
 	MPI_Comm world;
@@ -73,21 +85,30 @@ int main( int argc, char **argv ) {
 	int * A_bis = calloc(taille_bloc, sizeof(int));
 
 	MPI_Datatype bloc;
+	
 	MPI_Type_vector(taille_bloc, taille_bloc, n, MPI_INT, &bloc);
+	
+	MPI_Type_create_resized(bloc,0,sizeof(int),&bloc);	
+	
 	MPI_Type_commit(&bloc); 
 
+
+	int *A_final, *B_final, *C_final;
+	
 	if(myrank == 0)
 	{
-		int* A_final = calloc(n*n ,sizeof(int));
-		int* B_final = calloc(n*n ,sizeof(int));
-		int* C_final = calloc(n*n ,sizeof(int));
+		printf("n: %d\nnb: %d\ntaille:%d\n",n,nb_blocs_ligne,taille_bloc);
+
+		A_final = calloc(n*n ,sizeof(int));
+		B_final = calloc(n*n ,sizeof(int));
+		C_final = calloc(n*n ,sizeof(int));
 		
 		for (i = 0; i<n; i++)
 		{
 			for (j=0; j<n;j++)
 			{
-				A_final[i+j*n]=rand();
-				B_final[i+j*n]=rand();
+				A_final[i+j*n]=rand()%20;
+				B_final[i+j*n]=rand()%20;
 				
 				if(i<taille_bloc && j<taille_bloc)
 				{
@@ -95,44 +116,34 @@ int main( int argc, char **argv ) {
 				}
 			}
 		}
-		
-		int coords_tmp[2];
-		int rank_tmp;
-		printf("debug 1 : %d\n", __LINE__);
-		for (i = 0; i < nb_blocs_ligne; i++)
+		affiche_matrice(A_final, n);
+		printf("\n\n");
+		//~ affiche_matrice(B_final,taille_bloc);
+	}
+	int *sendcnts = calloc(nb_blocs, sizeof(int));
+	int *displs = calloc(nb_blocs, sizeof(int));
+	
+	for (j = 0; j < nb_blocs_ligne; j++)
+	{
+		for (i= 0; i < nb_blocs_ligne; i++)
 		{
-			for (j = 0; j < nb_blocs_ligne;j++)
-			{
-				if(i!=0 || j!=0)
-				{
-					printf("debug inside : %d\ni:%d\nj:%d\n", __LINE__,i,j);
-					coords[0]=i;
-					coords[1]=j;
-					MPI_Cart_rank(world, coords,&rank_tmp);
-					printf("rank:%d\n",rank_tmp);
-					printf("myrank:%d\n", myrank);
-					MPI_Send(&A_final[i+j*n], 1 , bloc, rank_tmp , 1, world);
-					printf("bla\n");
-					MPI_Send(&B_final[i+j*n], 1 , bloc, rank_tmp , 1, world);
-					}
-			}
+			sendcnts[i+j*nb_blocs_ligne]=1;
+			displs[i+j*nb_blocs_ligne]=(j*n+i)*taille_bloc;
 		}
 	}
-	else //myrank != 0
-	{
-		printf("rank en attente : %d\n", myrank);
-		printf("size : %d\n", size);
-		printf("taille bloc : %d\n", taille_bloc);
-
-		MPI_Recv(A, taille_bloc*taille_bloc, MPI_INT, 0, MPI_ANY_TAG, world, &status); 
-		printf("bla2\n");
-		MPI_Recv(B, taille_bloc*taille_bloc, MPI_INT, 0, MPI_ANY_TAG, world, &status); 
-	}
+		
+	//~ MPI_Scatter(A_final,1, bloc, A, taille_bloc*taille_bloc, MPI_INT, 0, world);
+	MPI_Scatterv(A_final, sendcnts, displs,bloc, A, taille_bloc*taille_bloc, MPI_INT, 0, world);
 	
-	printf("debug 2 : %d\n", __LINE__);
-
+	
 	//initialisation
 	MPI_Cart_coords(world, myrank, 2, coords);
+	
+		if(myrank == 2){
+			printf("coords x : %d, y : %d\n", coords[0], coords[1]);
+			affiche_matrice(A,taille_bloc);
+	printf("\n\n");
+	}
 	
 	MPI_Comm ligne;
 	MPI_Comm_split(world, coords[0], 1, &ligne);
@@ -146,7 +157,7 @@ int main( int argc, char **argv ) {
 	MPI_Comm_size( ligne, &size_ligne);
 	MPI_Comm_size( colonne, &size_colonne ); 
 	
-	printf("debug 3 : %d\n", __LINE__);
+	//~ printf("edebug 3 : %d\n", __LINE__);
 
 	for (k = 0; k<n ;k++)
 	{
@@ -161,16 +172,17 @@ int main( int argc, char **argv ) {
 		MPI_Cart_shift(world, 1, 1, &rank_source, &rank_dest);
 		MPI_Sendrecv_replace(B, 1, bloc,rank_dest, 1, rank_source, MPI_ANY_TAG, world, &status);
 	}
-	printf("debug 4 : %d\n", __LINE__);
+	//~ printf("debug 4 : %d\n", __LINE__);
 
 	//~ MPI_Send(&myrank, 1 , MPI_INT, myrank-1, 99, new_world);
 	//~ MPI_Comm_split(new_world, 1, 1, &new_world);
 
 	//~ printf("Fin n %d : %d\n", myrank, res);
 	//~ MPI_Comm_split(new_world, 0, 1, &new_world);
+	
+	MPI_Gather(C, taille_bloc*taille_bloc, MPI_INT, C_final, 1, bloc, 0, world);
 
 	MPI_Finalize();
 
   return EXIT_SUCCESS;
 } 
-
