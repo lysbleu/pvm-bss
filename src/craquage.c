@@ -24,9 +24,11 @@ int main (int argc, char* argv[])
 	char* mdp = (char*) calloc(longueur_mdp+1, sizeof(char));
 	strcpy(mdp, argv[3]);
 	
+	//recuperation du chemin de l executable
 	char* chemin = getcwd(NULL, 1000);
 	strcat(chemin, "/craquage_esclave");
 	
+	//creation des arguments pour l esclave
 	char *argv_esclave[2] ;
 	argv_esclave[0] = (char*) calloc(strlen(argv[2])+1, sizeof(char));
 	strcpy(argv_esclave[0],argv[2]);
@@ -43,24 +45,16 @@ int main (int argc, char* argv[])
 	
 	//initialisation des esclaves
 	pvm_spawn(chemin, argv_esclave, PvmTaskDefault,"", nb_esclaves, tids);
-
-	/*
-	for(i=0; i<nb_esclaves;i++)
-	{
-		pvm_initsend(PvmDataDefault);
-		//pvm_pkint(&i, 1, 1);
-		pvm_send(tids[i],0);
-	}*/
 	
-	//calcul du pas, fin_exec
+	//calcul du pas, fin_exec (= fin execution)
 	debut_sequence = 0;
-	//pas ... TODO
 	fin_exec = ((pow(longueur_mdp, 15)-1)*15)/14;
 	pas = fin_exec/nb_esclaves;
 
 	//boucle principale
-	while(!trouve && !fini)
+	while(!trouve && fini!=nb_esclaves)
 	{
+		// attente de reception de donnees d un esclave
 		bufid = pvm_recv( -1, -1 );
 		info = pvm_bufinfo( bufid, &bytes, &type, &source );
 		
@@ -70,6 +64,7 @@ int main (int argc, char* argv[])
 			exit(1);
 		}
 		
+		//selon le tag du message, demande de donnees ou solution trouvee
 		switch(type)
 		{
 			case(0)://mot de passe trouve
@@ -81,13 +76,11 @@ int main (int argc, char* argv[])
 			
 			case(1)://esclave veut plus de donnees
 			if(debut_sequence < fin_exec){
-					
-				//TODO calcul du début et fin sequence
-				//debut_sequence = ...
-				//fin_sequence = ...
 				
+
 				pas_reel = MIN(pas, fin_exec - debut_sequence);
-				
+				//prendre en compte la fin des donnees dans le calcul du pas
+				//envoi des donnes a l esclave
 				pvm_initsend(PvmDataDefault);
 				pvm_pkint(&debut_sequence, 1, 1);
 				pvm_pkint(&pas_reel, 1, 1);
@@ -96,16 +89,17 @@ int main (int argc, char* argv[])
 				debut_sequence += pas;
 				}
 			else{
-				fini = 1;
-				printf("Pas de solution\n");
+				fini++ ;
+				printf("Pas de solution pour %d esclaves\n", fini);
 			}		
 			
 			break;
+			
 			default:
 			break;
 		}
 	}
-	
+	// suppression des esclave
 	for(i=0; i<nb_esclaves;i++)
 	{
 		info = pvm_kill(tids[i]);
