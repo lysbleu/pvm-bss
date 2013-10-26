@@ -163,7 +163,7 @@ int main( int argc, char **argv ) {
 	//~ MPI_Comm_rank( colonne, &rank_colonne ); 
 	//~ MPI_Comm_size( colonne, &size_colonne ); 
 	
-	for (k = 0; k<n; k++)
+	for (k = 0; k<nb_blocs_ligne; k++)
 	{
 		tmp_coords[0] = k;
 		tmp_coords[1] = k;
