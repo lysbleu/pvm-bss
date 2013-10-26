@@ -136,17 +136,15 @@ int main( int argc, char **argv ) {
 		affiche_matrice(A_final, n);
 		printf("\n\n");
 		printf("B:\n");
-		affiche_matrice(B_final,taille_bloc);
+		affiche_matrice(B_final, n);
 		printf("\n\n");
 	}
 	//envoi des donnees aux autres processus
 	MPI_Scatterv(A_final, sendcnts, displs,bloc, A, taille_bloc*taille_bloc, MPI_INT, 0, world);
+	MPI_Scatterv(B_final, sendcnts, displs,bloc, B, taille_bloc*taille_bloc, MPI_INT, 0, world);
 	
-	if(myrank == 3){
-			printf("coords i : %d, j : %d\n", coords[0], coords[1]);
-			affiche_matrice(A,taille_bloc);
-	printf("\n\n");
-	}
+	//initialisation
+	MPI_Cart_coords(world, myrank, 2, coords);
 	
 	//creation d un communicateur sur la ligne
 	MPI_Comm ligne;
@@ -177,10 +175,11 @@ int main( int argc, char **argv ) {
 		MPI_Bcast(A_bis, taille_bloc*taille_bloc, MPI_INT, MPI_Cart_rank(world, tmp_coords, &tmp_rank), ligne);
 
 		produit_matriciel(C,A_bis, B, taille_bloc);	
-		
-		//rotation circulaire sur les colonnes
-		MPI_Cart_shift(world, 1, 1, &rank_source, &rank_dest);
+
+		//rotation circulaire sur les colonnes		
+		MPI_Cart_shift(world, 0, 1, &rank_source, &rank_dest);
 		MPI_Sendrecv_replace(B, taille_bloc*taille_bloc, MPI_INT,rank_dest, 1, rank_source, MPI_ANY_TAG, world, &status);
+		
 	}
 	
 	//reconstruction de la matrice C final
@@ -198,6 +197,9 @@ int main( int argc, char **argv ) {
 	{
 		printf("C:\n");
 		affiche_matrice(C_final, n);
+		printf("Résultat méthode classique:\n");
+		produit_matriciel(C_final, A_final, B_final, n);
+		affiche_matrice(C_final,n);
 		free(A_final);
 		free(B_final);
 		free(C_final);	
