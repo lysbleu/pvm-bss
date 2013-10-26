@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mpi.h>
+
 #define NB_TOURS 10
+
 int main( int argc, char **argv ) {
   int myrank, size, res, tmp;
   MPI_Status status; 
