@@ -8,17 +8,7 @@
 
 #define TAILLE_MAX  1000
 
-int min(int n1, int n2)
-{
-	if(n1 < n2)
-	{
-		return n1; 
-	}
-	else
-	{
-		return n2;
-	}
-}
+#define MIN(n1,n2) n1 < n2 ? n1 : n2
 
 int main (int argc, char* argv[])
 {
@@ -96,7 +86,7 @@ int main (int argc, char* argv[])
 				//debut_sequence = ...
 				//fin_sequence = ...
 				
-				pas_reel = min(pas, fin_exec - debut_sequence);
+				pas_reel = MIN(pas, fin_exec - debut_sequence);
 				
 				pvm_initsend(PvmDataDefault);
 				pvm_pkint(&debut_sequence, 1, 1);
