@@ -1,0 +1,27 @@
+(TeX-add-style-hook "report"
+ (lambda ()
+    (TeX-run-style-hooks
+     "caption"
+     "hyperref"
+     "hidelinks"
+     "luainputenc"
+     "utf8"
+     "listings"
+     "geometry"
+     "right=2cm"
+     "left=2cm"
+     "bottom=2.5cm"
+     "top=2.5cm"
+     "fancyhdr"
+     "graphicx"
+     "libertine"
+     "fontspec"
+     ""
+     "babel"
+     "francais"
+     "latex2e"
+     "art11"
+     "article"
+     "11pt"
+     "a4paper")))
+
