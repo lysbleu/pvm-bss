@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <mpi.h>
 #include <math.h>
+#include <string.h>
 
 void affiche_matrice(int *A, int n)
 {
@@ -16,16 +17,20 @@ void affiche_matrice(int *A, int n)
 	}
 }
 
-void produit_matriciel(int* C, int* A, int* B, int n)
+void produit_matriciel(int* C, int* A, int* B, int n, int remise_zero)
 {
 	int i, j, k;
+	if(remise_zero == 1)
+	{
+		memset(C, 0, n*n*sizeof(int));
+	}
 	for(i=0; i<n;i++)
 	{
 		for (j=0; j<n; j++)
 		{
 			for(k=0; k<n; k++)
 			{
-				C[i+j*n] += A[i+k*n] * B[k + j*n]; 
+				C[i*n+j] += A[i*n+k] * B[k*n + j]; 
 			}
 		}
 	}
@@ -111,13 +116,13 @@ int main( int argc, char **argv ) {
 		{
 			for (j=0; j<n;j++)
 			{
-				A_final[i+j*n]=rand()%20;
-				B_final[i+j*n]=rand()%20;
+				A_final[i*n+j]=rand()%20;
+				B_final[i*n+j]=rand()%20;
 				
 				if(i<taille_bloc && j<taille_bloc)
 				{
-					A[i+j*n] = A_final[i+j*n];
-				}
+					A[i*n+j] = A_final[i*n+j];
+				}	
 			}
 		}
 	//creation des tableaux necessaires pour Scatterv et GatherV
@@ -128,8 +133,8 @@ int main( int argc, char **argv ) {
 	{
 		for (i= 0; i < nb_blocs_ligne; i++)
 		{
-			sendcnts[i+j*nb_blocs_ligne]=1;
-			displs[i+j*nb_blocs_ligne]=(j*n+i)*taille_bloc;
+			sendcnts[j+i*nb_blocs_ligne]=1;
+			displs[j+i*nb_blocs_ligne]=(i*n+j)*taille_bloc;
 		}
 	}
 		printf("A:\n");
@@ -158,7 +163,7 @@ int main( int argc, char **argv ) {
 	//~ MPI_Comm_rank( colonne, &rank_colonne ); 
 	//~ MPI_Comm_size( colonne, &size_colonne ); 
 	
-	for (k = 0; k<n ;k++)
+	for (k = 0; k<n; k++)
 	{
 		tmp_coords[0] = k;
 		tmp_coords[1] = k;
@@ -174,9 +179,9 @@ int main( int argc, char **argv ) {
 		//broadcast sur la ligne
 		MPI_Bcast(A_bis, taille_bloc*taille_bloc, MPI_INT, MPI_Cart_rank(world, tmp_coords, &tmp_rank), ligne);
 
-		produit_matriciel(C,A_bis, B, taille_bloc);	
+		produit_matriciel(C,A_bis, B, taille_bloc, 0);	
 
-		//rotation circulaire sur les colonnes		
+		//rotation circulaire sur les lignes		
 		MPI_Cart_shift(world, 0, 1, &rank_source, &rank_dest);
 		MPI_Sendrecv_replace(B, taille_bloc*taille_bloc, MPI_INT,rank_dest, 1, rank_source, MPI_ANY_TAG, world, &status);
 		
@@ -198,7 +203,7 @@ int main( int argc, char **argv ) {
 		printf("C:\n");
 		affiche_matrice(C_final, n);
 		printf("Résultat méthode classique:\n");
-		produit_matriciel(C_final, A_final, B_final, n);
+		produit_matriciel(C_final, A_final, B_final, n, 1);
 		affiche_matrice(C_final,n);
 		free(A_final);
 		free(B_final);
