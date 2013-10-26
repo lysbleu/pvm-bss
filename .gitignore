@@ -3,3 +3,6 @@
 *.aux
 *.log
 \#*
+*.toc
+*.out
+auto/
