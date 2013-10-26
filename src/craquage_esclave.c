@@ -38,7 +38,9 @@ void conversion(int code, char* solution)
 		solution[i] = 'a' + reste;
 		code -= reste;
 		code /= 15;
+		i++;
 	}
+	solution[i] = '\0';
 }
 
 int main (int argc, char* argv[])
@@ -65,6 +67,7 @@ int main (int argc, char* argv[])
 	printf("avant while\n");
 	while(1)
 	{
+		//si l esclave a fini le travail qu il avait
 		if(travail_courant >= max_travail)
 		{
 			pvm_initsend(PvmDataDefault);
@@ -81,12 +84,16 @@ int main (int argc, char* argv[])
 				exit(1);
 			}
 			
+			//conversion de l entier en chaine de caracteres
 			conversion(travail_courant, solution);
 			fprintf(stderr, "solution :%s\ntravail_courant :%d\nmax_travail :%d\n",solution, travail_courant, max_travail);
 		}
 		
+		//incrementation de la solution
 		incr(solution, longueur_mdp);
 		
+		//test si la solution est egale au mot de passe
+		// si oui, envoi au maitre
 		if (strcmp(solution, mdp) == 0)
 		{
 			pvm_initsend(PvmDataDefault);

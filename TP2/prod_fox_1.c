@@ -90,9 +90,7 @@ int main( int argc, char **argv ) {
 	MPI_Datatype bloc;
 	
 	MPI_Type_vector(taille_bloc, taille_bloc, n, MPI_INT, &bloc);
-	
 	MPI_Type_create_resized(bloc,0,sizeof(int),&bloc);	
-	
 	MPI_Type_commit(&bloc); 
 
 
@@ -147,7 +145,7 @@ int main( int argc, char **argv ) {
 	//initialisation
 	MPI_Cart_coords(world, myrank, 2, coords);
 	
-		if(myrank == 1){
+		if(myrank == 3){
 			printf("coords i : %d, j : %d\n", coords[0], coords[1]);
 			affiche_matrice(A,taille_bloc);
 	printf("\n\n");
