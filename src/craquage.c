@@ -45,9 +45,9 @@ int main (int argc, char* argv[])
 	int bufid, info, bytes, type, source;
 	char * solution;
 
-	//~ pvm_catchout(stderr);
+	pvm_catchout(stderr);
 	
-	int longueur_max = 0;
+	/*int longueur_max = 0;
 	unsigned long int ulmax = ULONG_MAX;
       	ulmax /=15;
         ulmax *=14;
@@ -63,7 +63,7 @@ int main (int argc, char* argv[])
 	    printf("Longueur max du mot de passe trop grande : %d au lieu de %d\n", atoi(argv[2]), longueur_max);
 	    return EXIT_FAILURE;
 	  }
-	
+       */
 	//initialisation des esclaves
 	//printf("chemin:%s argv_esclave[0]:%s argv_esclave[1]:%s nb_esclaves:%d \n", chemin,argv_esclave[0], argv_esclave[1], nb_esclaves); 
 	pvm_spawn(chemin, argv_esclave, PvmTaskDefault,"", nb_esclaves, tids);
