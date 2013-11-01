@@ -6,6 +6,7 @@
 #include <math.h>
 #include <unistd.h>
 #include <limits.h>
+#include<sys/time.h>
 
 #define TAILLE_MAX  1000
 #define NB_TRANCHES 10
@@ -18,8 +19,8 @@ int main (int argc, char* argv[])
 		printf("usage : ./craquage p r m\n");
 		return EXIT_FAILURE;
 	}
-
-	// Initialisation des variables
+	
+	//Initialisation des variables
 	int nb_esclaves = atoi(argv[1]);
 	int* tids = (int*) calloc(nb_esclaves, sizeof(int));
 	int longueur_mdp = atoi(argv[2]);
@@ -45,7 +46,7 @@ int main (int argc, char* argv[])
 	int bufid, info, bytes, type, source;
 	char * solution;
 
-	pvm_catchout(stderr);
+	//pvm_catchout(stderr);
 	
 	/*int longueur_max = 0;
 	unsigned long int ulmax = ULONG_MAX;
@@ -66,6 +67,9 @@ int main (int argc, char* argv[])
        */
 	//initialisation des esclaves
 	//printf("chemin:%s argv_esclave[0]:%s argv_esclave[1]:%s nb_esclaves:%d \n", chemin,argv_esclave[0], argv_esclave[1], nb_esclaves); 
+	struct timeval tv1, tv2;
+	gettimeofday(&tv1, NULL);
+
 	pvm_spawn(chemin, argv_esclave, PvmTaskDefault,"", nb_esclaves, tids);
 
 	//calcul du pas, fin_exec (= fin execution)
@@ -73,7 +77,7 @@ int main (int argc, char* argv[])
 	fin_exec = ((pow(15, longueur_mdp)-1)*15)/14;
 	pas = fin_exec/(nb_esclaves*longueur_mdp);
 
-	printf("fin_exec: %lu, pas:%lu\n", fin_exec, pas); 
+	//printf("fin_exec: %lu, pas:%lu\n", fin_exec, pas); 
 	//boucle principale
 	while(!trouve && fini!=nb_esclaves)
 	{
@@ -93,7 +97,7 @@ int main (int argc, char* argv[])
 			case(0)://mot de passe trouve
 			solution = calloc(bytes, sizeof(char));
 			pvm_upkstr(solution);
-			printf("\nLa solution est : %s\n\n", solution);
+			//printf("\nLa solution est : %s\n\n", solution);
 			trouve = 1;
 			break;	
 			
@@ -118,7 +122,7 @@ int main (int argc, char* argv[])
 				}
 			else{
 				fini++ ;
-				printf("Pas de solution pour %d esclave(s)\n", fini);
+				//printf("Pas de solution pour %d esclave(s)\n", fini);
 			}		
 			
 			break;
@@ -135,7 +139,8 @@ int main (int argc, char* argv[])
 	}
 	
 	pvm_exit();
-	
+	gettimeofday(&tv2, NULL);
+	printf("%d %ld\n",longueur_mdp,(tv2.tv_sec-tv1.tv_sec)*1000 + (tv2.tv_usec-tv1.tv_usec)/1000); 
 	free(tids);
 	free(mdp);
 	free(argv_esclave[0]);
