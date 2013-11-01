@@ -157,11 +157,11 @@ int main( int argc, char **argv ) {
 	MPI_Comm_size( ligne, &size_ligne);
 	MPI_Comm_rank( ligne, &rank_ligne);
 
-	//inutile
-	//~ MPI_Comm colonne;
-	//~ MPI_Comm_split(world, coords[1	], 0, &colonne);
-	//~ MPI_Comm_rank( colonne, &rank_colonne ); 
-	//~ MPI_Comm_size( colonne, &size_colonne ); 
+	//creation d un communicateur sur la colonne
+	MPI_Comm colonne;
+	MPI_Comm_split(world, coords[1], 0, &colonne);
+	MPI_Comm_rank( colonne, &rank_colonne ); 
+	MPI_Comm_size( colonne, &size_colonne ); 
 	
 	tmp_coords[0] = coords[0];
 	
@@ -182,12 +182,12 @@ int main( int argc, char **argv ) {
 		//broadcast sur la ligne
 		MPI_Bcast(A_bis, taille_bloc*taille_bloc, MPI_INT,tmp_rank %nb_blocs_ligne , ligne);
 
+		//produit matriciel
 		produit_matriciel(C,A_bis, B, taille_bloc, 0);	
 
 		//rotation circulaire sur les lignes		
 		MPI_Cart_shift(world, 0, 1, &rank_source, &rank_dest);
-		MPI_Sendrecv_replace(B, taille_bloc*taille_bloc, MPI_INT,rank_dest, 1, rank_source, MPI_ANY_TAG, world, &status);
-		
+		MPI_Sendrecv_replace(B, taille_bloc*taille_bloc, MPI_INT,rank_dest/nb_blocs_ligne, 1, rank_source/nb_blocs_ligne, MPI_ANY_TAG, colonne, &status);
 	}
 	
 	//reconstruction de la matrice C final
@@ -206,7 +206,6 @@ int main( int argc, char **argv ) {
 		printf("Résultat méthode classique:\n");
 		produit_matriciel(C_final, A_final, B_final, n, 1);
 		affiche_matrice(C_final,n);
-
 	}
 	MPI_Finalize();
 
