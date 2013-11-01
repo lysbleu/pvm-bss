@@ -11,7 +11,7 @@ void affiche_matrice(int *A, int n)
 	{
 		for(j=0; j<n; j++)
 		{
-			printf("%3d  ", A[j+i*n]);
+			printf("%4d  ", A[j+i*n]);
 		}
 		printf("\n");
 	}
@@ -106,7 +106,7 @@ int main( int argc, char **argv ) {
 	//initialisation propre au proc 0
 	if(myrank == 0)
 	{
-		printf("n: %d\nnb: %d\ntaille:%d\n",n,nb_blocs_ligne,taille_bloc);
+		printf("n: %d\nnb_blocs_ligne: %d\ntaille_bloc:%d\n",n,nb_blocs_ligne,taille_bloc);
 
 		A_final = calloc(n*n ,sizeof(int));
 		B_final = calloc(n*n ,sizeof(int));
@@ -159,25 +159,28 @@ int main( int argc, char **argv ) {
 
 	//inutile
 	//~ MPI_Comm colonne;
-	//~ MPI_Comm_split(world, coords[1], 0, &colonne);
+	//~ MPI_Comm_split(world, coords[1	], 0, &colonne);
 	//~ MPI_Comm_rank( colonne, &rank_colonne ); 
 	//~ MPI_Comm_size( colonne, &size_colonne ); 
 	
+	tmp_coords[0] = coords[0];
+	
 	for (k = 0; k<nb_blocs_ligne; k++)
 	{
-		tmp_coords[0] = k;
-		tmp_coords[1] = k;
+		tmp_coords[1] = coords[0] + k % nb_blocs_ligne;
+		MPI_Cart_rank(world, tmp_coords, &tmp_rank);
+
 		//copie pour permettre le broadcast
-		if(coords[1] == k && coords[1] == k)
+		if(myrank == tmp_rank)
 		{
 			for (i = 0; i< taille_bloc*taille_bloc; i++)
 			{
 				A_bis[i] = A[i];
-			}
+			}		
 		}		
 		
 		//broadcast sur la ligne
-		MPI_Bcast(A_bis, taille_bloc*taille_bloc, MPI_INT, MPI_Cart_rank(world, tmp_coords, &tmp_rank), ligne);
+		MPI_Bcast(A_bis, taille_bloc*taille_bloc, MPI_INT,tmp_rank %nb_blocs_ligne , ligne);
 
 		produit_matriciel(C,A_bis, B, taille_bloc, 0);	
 
@@ -191,13 +194,11 @@ int main( int argc, char **argv ) {
 	MPI_Gatherv(C, taille_bloc*taille_bloc, MPI_INT, C_final, sendcnts, displs, bloc, 0, world);
 
 	MPI_Type_free(&bloc);
-	MPI_Finalize();
-	
-	free(A);
-	free(B);
-	free(C);
-	free(A_bis);
-	
+
+	//~ free(A_final);
+	//~ free(B_final);
+	//~ free(C_final);	
+
 	if (myrank == 0)
 	{
 		printf("C:\n");
@@ -205,10 +206,9 @@ int main( int argc, char **argv ) {
 		printf("Résultat méthode classique:\n");
 		produit_matriciel(C_final, A_final, B_final, n, 1);
 		affiche_matrice(C_final,n);
-		free(A_final);
-		free(B_final);
-		free(C_final);	
+
 	}
-	
+	MPI_Finalize();
+
   return EXIT_SUCCESS;
 } 
