@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include <string.h>
-
+#include "gmp/gmp.h"
 void incr(char* solution, int longueur_max)
 {
 	int continuer = 1;
@@ -32,24 +32,29 @@ void incr(char* solution, int longueur_max)
 	//printf("incr :%s\n",solution);
 }
 
-void conversion(unsigned long code, char* solution)
+void conversion(mpz_t code, char* solution)
 {
 	int i = 0;
-	int reste;
+	mpz_t reste;
+	mpz_init(reste);
 	int inf_15 = 0;
-	while(code != 0 || inf_15 !=1  )
+	while(mpz_cmp_ui(code,0)!=0 || inf_15 !=1  )
 	{
-	  if (code <15)
+	  if (mpz_cmp_ui(code,15)<0)
 	    {
 	      inf_15 =1;
 	    }
-		reste = code % 15;
-		solution[i] = 'a' + reste;
-		code -= reste;
-		code /= 15;
+	  mpz_cdiv_r_ui(reste, code, 15);
+	  //reste = *code % 15;
+	  solution[i] = 'a' + mpz_get_ui(reste);
+	  mpz_sub(code, code, reste);
+	  mpz_cdiv_q_ui(code, code, 15);
+	  //*code -= reste;
+	  //*code /= 15;
 		i++;
 	}
 	solution[i] = '\0';
+	mpz_clear(reste);
 }
 
 int main (int argc, char* argv[])
@@ -69,11 +74,22 @@ int main (int argc, char* argv[])
 	//int maximum = 0;
 
 	int parenttid = pvm_parent();
-	unsigned long int max_travail, pas;
-	max_travail = 0;
-	unsigned long int travail_courant;
-	  int bufid;
-	travail_courant = 1;
+	//unsigned long int max_travail, pas;
+	//char *pas = calloc(1, sizeof(char)*((4*longueur_mdp+1)/3 +1));
+	//char *max_travail = calloc(1, sizeof(char)*((4*longueur_mdp+1)/3 +1));
+	//*max_travail = 0;
+	mpz_t max_travail, pas, travail_courant;
+	//mpz_inits(max_travail, pas, travail_courant, NULL);
+	mpz_init(max_travail);
+	mpz_init(pas);
+	mpz_init(travail_courant);
+	mpz_set_ui(max_travail, 0);
+	mpz_set_ui(travail_courant, 1);
+	//unsigned long int travail_courant;
+	//char *travail_courant = calloc(1, sizeof(char)*((4*longueur_mdp+1)/3 +1));
+	int bufid, size;
+	char * recep_char;
+	//*travail_courant = 1;
 	char * solution = (char*) calloc(longueur_mdp+1, sizeof(char)); ; 
 	
 	//fprintf(stderr, "mdp : %s\n", mdp);
@@ -81,16 +97,28 @@ int main (int argc, char* argv[])
 	{
 	  //fprintf(stderr, "avant\n");
 		//si l esclave a fini le travail qu il avait
-		if(travail_courant >= max_travail)
+	  if(mpz_cmp(travail_courant, max_travail)>=0)
 		{
 		  //fprintf(stderr, "esclave a fini son travail et en demande\n");
 			pvm_initsend(PvmDataDefault);
 			pvm_send(parenttid,1);
 			
 			bufid = pvm_recv(parenttid, -1 );
-			pvm_upkulong(&travail_courant, 1, 1);
-			pvm_upkulong(&pas, 1, 1);
-			max_travail = travail_courant + pas;
+			//pvm_upkulong(travail_courant, 1, 1);
+			//pvm_upkulong(pas, 1, 1);
+			pvm_upkint(&size, 1, 1);
+			recep_char = calloc(size, sizeof(char));
+			pvm_upkbyte(recep_char,size , 1);
+			gmp_sscanf(recep_char, "%Zd", travail_courant);
+			
+			pvm_upkint(&size, 1, 1);			
+			recep_char = realloc(recep_char, sizeof(char)*size);
+			memset(recep_char, 0, sizeof(char)*size);
+			pvm_upkbyte(recep_char, size, 1);
+			gmp_sscanf(recep_char, "%Zd", pas);
+			
+			mpz_add(max_travail, travail_courant, pas);
+			//*max_travail = *travail_courant + *pas;
 				
 			if (bufid < 0)
 			{
@@ -100,7 +128,7 @@ int main (int argc, char* argv[])
 			
 			//conversion de l entier en chaine de caracteres
 			conversion(travail_courant, solution);
-			fprintf(stderr, "solution :%s travail_courant :%lu max_travail :%lu\n",solution, travail_courant, max_travail);
+			gmp_fprintf(stderr, "solution :%s travail_courant :%Zd max_travail :%Zd\n",solution, travail_courant, max_travail);
 		}
 		//fprintf(stderr, "apres");
 		
@@ -117,7 +145,7 @@ int main (int argc, char* argv[])
 
                 //incrementation de la solution                                                                                                               
                 incr(solution, longueur_mdp);
-                travail_courant++;
+                mpz_add_ui(travail_courant,travail_courant,1);
 	}
 	
 	pvm_exit();

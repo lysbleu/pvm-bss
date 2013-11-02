@@ -1,6 +1,6 @@
 OUTPUT_NAME=craquage
 OUTPUT_MULTITHREAD_NAME=craquage_multithread
-LDFLAGS=-lpvm3 -lm
+LDFLAGS=-lpvm3 -lm -Wl,-R gmp/ -lgmp
 CFLAGS=-Wall -Wextra -g
 CC=gcc
 
