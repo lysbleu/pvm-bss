@@ -1,0 +1,69 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[francais]{babel}
+%% Prévu pour compiler avec lualatex
+% \usepackage[utf8]{inputenc}
+\usepackage{fontspec}
+\usepackage{libertine}
+% \usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage[top=2.5cm, bottom=2.5cm, left=2cm, right=2cm]{geometry}
+\usepackage{listings}
+\usepackage[utf8]{luainputenc}
+\usepackage[hidelinks]{hyperref}
+\usepackage{caption}
+
+\lfoot{\bsc{Enseirb-Matmeca}}
+\rfoot{Informatique --- 3\ieme{} année}
+
+\pagestyle{fancy}
+\begin{document}
+
+\begin{titlepage}
+  \begin{center}
+
+    \begin{center}
+      \includegraphics[width=4cm]{EM.jpg}
+    \end{center}
+
+    \vspace*{1cm}
+        
+    \rule{0.75\linewidth}{0.7mm}\\[0.4cm]
+    {\Huge Rapport TP2 --- MPI\\[0.4cm]}
+    \rule{0.75\linewidth}{0.7mm} \\[1.5cm]
+
+    {\Large Bazire \bsc{Houssin}\\Sylvain \bsc{Vaglica}\\Stéphane \bsc{Castelli}\\[2cm]}
+    {\Large Mardi 5 Novembre 2013}
+  \end{center}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+\section{Introduction}
+MPI est une norme permettant la communication entre processus, que cela soit en local sur une machine parallèle ou sur un cluster. Créée en 1994 dans sa première version, MPI2 a vu le jour en 1997 afin de corriger certains points. Il en existe différentes implémentations, notamment MPICH et Open MPI, ainsi que celles réalisées par les contructeurs de matériel. Les différences entres les implémentations, mis à part de possibles bogues, viennent essentiellement des performances.
+
+Il a été demandé de réaliser en utilisant MPI et les avantages de la distribution des calculs sur la rapidité d'exécution d'un code parallélisé un programme permettant de multiplier des matrices grâce à l'algorithme de Fox.
+
+\section{Présentation de l'algorithme}
+
+Un prérequis de l'algorithme de Fox est de découper les matrices en entrée, ainsi que la matrice en sortie, en blocs carrés de même taille.
+
+% TODO
+
+\section{Communications}
+
+Afin d'accélérer le calcul du produit matriciel, celui-ci est découpé en plusieurs fragments et chacun d'entre eux est assigné à un processus différent, ce qui va permettre d'effectuer plusieurs calculs en même temps dans le cas où la machine d'exécution possède plusieurs cœurs, plusieurs processeurs, ou si on a plusieurs machines. Toutefois, si les calculs sont répartis entre plusieurs processus il faut réunir les différents résultats afin d'avoir la réponse finale. Il est donc indispensable de réaliser des communications efficaces afin que le temps gagné en distribuant les calculs ne soit pas perdu parce que les processus attendent du travail, ou parce qu'elle n'arrive pas à retourner leur réponse. C'est là que les différents mécanisme définis dans la norme MPI entrent en jeux : ils permettent au développeur de s'épargner la plupart des soucis qui pourraient apparaître en ne lui laissant que la seule tâche d'organiser l'envoi et la réception de données.
+
+
+
+\section{Création et attribution des tâches}
+
+
+
+\section{Performances}
+
+\section{Conclusion}
+
+MPI a permis de réaliser de manière relativement simple un algorithme distribué en s'occupant lui même de tout ce qui a trait à ce caractère distribué, de la création des processus à la leur terminaison en passant par les communications entre eux. Ainsi, un problème ayant une complexité importante, la multiplication matricielle, a pu se résoudre avec des temps de calculs plus modestes, comme les test de performances ont pû le montrer. En outre, en ayant une bonne vision des étapes de calculs et des mécanismes offerts par la bibliothèque il n'était pas plus difficile qu'en séquentiel d'implémenter l'algorithme ; même si bien évidemment il a fallu acquérir cette vision des étapes de calculs et des mécanismes fournis par MPI, chose dans les faits non triviale sans pour autant être d'une difficulté rédhibitoire. Les deux principaux points auxquels il a fallu prendre garde furent la gestion des communications afin que chacun reçoive ce qu'il est sensé recevoir, et la définition du travail effectué par le processus, découlant en droite ligne de l'algorithme.
+
+\end{document}
