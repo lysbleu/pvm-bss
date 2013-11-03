@@ -1,5 +1,5 @@
 #!bin/bash
-for ((i=1;i<100;i+=3))
+for ((i=100;i>3;i-=3))
 do
  for ((j=1; j<11; j++))
  do
