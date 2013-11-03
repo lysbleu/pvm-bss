@@ -1,12 +1,12 @@
 OUTPUT_NAME=craquage
 OUTPUT_MULTITHREAD_NAME=craquage_multithread
-LDFLAGS=-lpvm3 -lm -Wl,-R gmp/ -lgmp
+LDFLAGS=-lpvm3 -lm -Wl,-R gmp/ -lgmp -lpthread
 CFLAGS=-Wall -Wextra -g
 CC=gcc
 
-all: craquage
+all: craquage craquage_multithread
 monothread: craquage
-multithread:
+multithread: craquage_multithread
 $(OUTPUT_NAME): craquage.o craquage_esclave
 	$(CC) -o $@ $< $(LDFLAGS)
 craquage.o: craquage.c

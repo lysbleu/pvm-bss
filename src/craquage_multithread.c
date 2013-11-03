@@ -9,17 +9,17 @@
 
 int main (int argc, char* argv[])
 {
-	if(argc !=4)
+	if(argc !=5)
 	{
-		printf("usage : ./craquage p r m\n");
+		printf("usage : ./craquage p t r m\n");
 		return EXIT_FAILURE;
 	}
 	
 	//Initialisation des variables
 	int nb_esclaves = atoi(argv[1]);
 	int* tids = (int*) calloc(nb_esclaves, sizeof(int));
-	int longueur_mdp = atoi(argv[2]);
-	char* mdp = (char*) calloc(strlen(argv[3])+1, sizeof(char));
+	int longueur_mdp = atoi(argv[3]);
+	char* mdp = (char*) calloc(strlen(argv[4])+1, sizeof(char));
 	strcpy(mdp, argv[3]);
 
 	//declaration de type de tres long entiers (avec bibliotheque GMP)
@@ -31,16 +31,19 @@ int main (int argc, char* argv[])
 
 	//recuperation du chemin de l executable
 	char* chemin = getcwd(NULL, 1000);
-	strcat(chemin, "/craquage_esclave");
+	strcat(chemin, "/craquage_esclave_multithread");
 
 	//creation des arguments pour l esclave
-	char *argv_esclave[3];
-	argv_esclave[2]=NULL;
+	char *argv_esclave[4];
+	argv_esclave[3]=NULL;
 	argv_esclave[0] = (char*) calloc(strlen(argv[2])+1, sizeof(char));
 	strcpy(argv_esclave[0],argv[2]);
 	 
 	argv_esclave[1] = (char*) calloc(strlen(argv[3])+1, sizeof(char));
 	strcpy(argv_esclave[1],argv[3]);
+
+	argv_esclave[2] = (char*) calloc(strlen(argv[4])+1, sizeof(char));
+	strcpy(argv_esclave[2],argv[4]);
 	//printf("strlen %lu, %lu\n", (long unsigned)strlen(argv[2]),(long unsigned) strlen(argv[3]));
 	//printf("nb_esclaves %d\n", nb_esclaves);
 	
