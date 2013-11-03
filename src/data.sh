@@ -1,7 +1,7 @@
 #!bin/bash
-for ((i=1;i<100;i+=2))
+for ((i=1;i<100;i+=3))
 do
- for ((j=1; j<9; j++))
+ for ((j=1; j<11; j++))
  do
    ./craquage $i $j p>> data/data_$i.txt;
  done
