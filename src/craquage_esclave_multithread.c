@@ -26,7 +26,12 @@ int longueur_mdp;
 //fonction de terminaison, qui nettoie la memoire avant de quitter 
 void terminaison()
 {
+  int i ;
   fprintf(stderr, "Cleaning in progress...\n");
+  for(i=0; i<nb_threads; i++)
+    {
+      pthread_cancel(threads[i]);
+    }
   mpz_clear(fin_exec_global);
   mpz_clear(fin_exec_global_bis);
   mpz_clear(pas_global);
@@ -99,11 +104,11 @@ void conversion(mpz_t code_cons, char* solution_arg)
 	mpz_clear(reste);
 }
 
-
 //fonction qui demande les donnees
 void* demande_donnees(void* arg)
 {
   pthread_mutex_lock(&communication_lock);
+  fprintf(stderr, "test1\n");
   pvm_initsend(PvmDataDefault);
   pvm_send(parenttid,1);
   int bufid,size;
@@ -133,6 +138,7 @@ void* demande_donnees(void* arg)
   //conversion de l entier en chaine de caracteres                                                                                                                                       
   //conversion(travail_courant_bis, solution);
   gmp_fprintf(stderr, "travail_courant :%Zd pas :%Zd max_travail :%Zd\n", travail_courant_global_bis, pas_bis, fin_exec_global_bis);
+  fprintf(stderr, "test2\n");
   pthread_mutex_unlock(&communication_lock);
   return NULL;
 }
@@ -153,6 +159,7 @@ void calcul_local(mpz_t travail_local, mpz_t fin_exec_local, char* solution)
 	      pvm_send(parenttid,0);*/
 	      //envoi par le thread de communication
 	      pthread_mutex_lock(&travail_courant_lock);
+	      strcpy(solution_globale, solution);
 	      termine =0;
 	      pthread_mutex_unlock(&travail_courant_lock);
 	      break;
@@ -217,12 +224,12 @@ void pioche_donnees(mpz_t travail_local, mpz_t fin_exec_local)
 //fonction execute par les threads
 void* thread_exec(void *arg)
 {
+  fprintf(stderr, "test-exec1\n");
   char* solution = (char*) calloc(longueur_mdp+1, sizeof(char)); 
   mpz_t travail_local, fin_exec_local;
   mpz_t aux;
   mpz_init(travail_local);
   mpz_init(fin_exec_local);
-
   while(1)
     {
       if (termine == 0)
@@ -249,6 +256,7 @@ void* thread_exec(void *arg)
       pioche_donnees(travail_local, fin_exec_local);
       
       calcul_local(travail_local, fin_exec_local, solution);
+      fprintf(stderr, "test-exec2\n");
     }
   return NULL;
 }
@@ -274,7 +282,7 @@ int main (int argc, char* argv[])
 	nb_threads = atoi(argv[1]);
 	threads = calloc(nb_threads, sizeof(pthread_t));
 	
-	int parenttid = pvm_parent();
+	parenttid = pvm_parent();
 
 	solution_globale = (char*) calloc(longueur_mdp+1, sizeof(char)); 
 
