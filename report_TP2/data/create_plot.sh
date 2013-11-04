@@ -1,7 +1,7 @@
 command -v sponge >/dev/null 2>&1 || { echo >&2 "Il faut installer moreutils" ; exit 1; }
 command -v gnuplot >/dev/null 2>&1 || { echo >&2 "Il faut installer gnuplot"; exit 1; }
 echo "# Fichier temporaire pour gnuplot" > plot
-#echo "set logscale y" >> plot
+echo "set logscale y" >> plot
 echo "set terminal pngcairo size 800,500" >> plot
 echo "set output 'plot.png'" >> plot
 echo "set key on center rmargin box title \"Nombre de\n processus\"" >> plot

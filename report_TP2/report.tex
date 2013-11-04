@@ -48,11 +48,11 @@ Il a été demandé de réaliser en utilisant MPI et les avantages de la distrib
 L'algorithme de Fox est une méthode parallèle de multiplication de matrices denses par blocs. On considèrera donc le produit des matrices $A$ et $B$ pour donner la matrice $C=A*B$.
 Un prérequis de l'algorithme de Fox est de découper les matrices en entrée, ainsi que la matrice en sortie, en blocs carrés de même taille. On utilise autant de processus qu'il y a de blocs dans une matrice.
 On répète ensuite $k$ fois les étapes suivantes, $k$ étant le nombre de blocs dans une ligne ou une colonne:
-\begin{enum}
+\begin{itemize}
 \item Pour chaque ligne, on diffuse à tous les processus d'une ligne le bloc de A situé k positions à droite du bloc diagonal;
 \item Pour chaque bloc, on accumule dans $c_{i,j}$ le produit du bloc de A reçu par diffusion et du bloc de B courant;  
 \item Pour chaque colonne, on permute circulairement vers le haut les blocs de B;
-\end{enum}
+\end{itemize}
 
 A la fin des $k$ étapes, chaque bloc $c_{i,j}$ contient le résultat attendu et les blocs de B sont revenus en position initiale.
 
@@ -61,12 +61,21 @@ Afin d'accélérer le calcul du produit matriciel, celui-ci est découpé en plu
 
 
 
-\section{Création et attribution des tâches}
-% Je pense qu'on peu enlever cette section
+
+
+\section{Topologie et répartition des données}
 
 
 \section{Performances}
 
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{plot.png}
+  \caption{Performance du programme}
+  \label{perf}
+\end{figure}
+
+En raison de problème sur PLAFRIM, il n'a pas été possible de réaliser les tests de performances sur les fourmis ; les tests ont tout de même été réalisé dessus, la machine étant multicœur. On peut observer les résultats sur la figure \ref{perf}. De manière prévisible, la version n'utilisant qu'un processus devient rapidement lente au fur et à mesure que la dimension de l'entrée augmente. La plateforme semble optimisée pour 4 processus, même si l'exécution avec 9 processus reste proche au début. Avec 16 processus, on constate une dégradation des performances, sûrement liée au surcoût de la création et de l'ordonnancement des processus qui ne peut pas être compensé par une meilleure exécution parallèle, car un nombre limité de processus peuvent être exécuté en même temps, nombre inférieur à 16.
 \section{Conclusion}
 
 MPI a permis de réaliser de manière relativement simple un algorithme distribué en s'occupant lui même de tout ce qui a trait à ce caractère distribué, de la création des processus à la leur terminaison en passant par les communications entre eux. Ainsi, un problème ayant une complexité importante, la multiplication matricielle, a pu se résoudre avec des temps de calculs plus modestes, comme les test de performances ont pû le montrer. En outre, en ayant une bonne vision des étapes de calculs et des mécanismes offerts par la bibliothèque il n'était pas plus difficile qu'en séquentiel d'implémenter l'algorithme ; même si bien évidemment il a fallu acquérir cette vision des étapes de calculs et des mécanismes fournis par MPI, chose dans les faits non triviale sans pour autant être d'une difficulté rédhibitoire. Les deux principaux points auxquels il a fallu prendre garde furent la gestion des communications afin que chacun reçoive ce qu'il est sensé recevoir, et la définition du travail effectué par le processus, découlant en droite ligne de l'algorithme.
