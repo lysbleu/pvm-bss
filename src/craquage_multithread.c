@@ -130,7 +130,7 @@ int main (int argc, char* argv[])
 		  pvm_pkint(&size, 1, 1);
 		  pvm_pkbyte(envoi_char,size+1 , 1);
 		  free(envoi_char);
-		  pvm_send(source,0);
+		  pvm_send(source,0);//tag 0 pour nouvelles donnees
 		  
 		  if(mpz_cmp(pas_reel,pas)!=0)
 		    {
@@ -143,6 +143,9 @@ int main (int argc, char* argv[])
 		  nb_envoi++;
 		}
 		else{
+		  pvm_initsend(PvmDataDefault);
+		  pvm_send(source,1);//tag 1 pour fin des donnees
+
 		  fini++ ;
 		  printf("Pas de solution pour %d esclave(s)\n", fini);
 		}		
