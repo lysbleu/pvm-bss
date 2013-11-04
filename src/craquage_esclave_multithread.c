@@ -30,7 +30,7 @@ void terminaison()
   fprintf(stderr, "Cleaning in progress...\n");
   for(i=0; i<nb_threads; i++)
     {
-      pthread_cancel(threads[i]);
+      //pthread_cancel(threads[i]);
     }
   mpz_clear(fin_exec_global);
   mpz_clear(fin_exec_global_bis);
@@ -107,38 +107,60 @@ void conversion(mpz_t code_cons, char* solution_arg)
 //fonction qui demande les donnees
 void* demande_donnees(void* arg)
 {
+  pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+  pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+  int info, bytes, type, source;
   pthread_mutex_lock(&communication_lock);
-  fprintf(stderr, "test1\n");
-  pvm_initsend(PvmDataDefault);
-  pvm_send(parenttid,1);
-  int bufid,size;
-  char *recep_char, *recep_char2;
-
-  bufid = pvm_recv(parenttid, -1 );
-  pvm_upkint(&size, 1, 1);
-  recep_char = calloc(size+1, sizeof(char));
-  pvm_upkbyte(recep_char,size+1 , 1);
-  gmp_sscanf(recep_char, "%Zd", travail_courant_global_bis);
-  free(recep_char);
-
-  pvm_upkint(&size, 1, 1);
-  recep_char2 = calloc(size+1, sizeof(char));
-  pvm_upkbyte(recep_char, size+1, 1);
-  gmp_sscanf(recep_char, "%Zd", pas_bis);
-  free(recep_char2);
-  mpz_add(fin_exec_global_bis, travail_courant_global_bis, pas_bis);
-  mpz_cdiv_q_ui(pas_bis, pas_bis, nb_threads);
-
-  if (bufid < 0)
+  if(arg==NULL)
     {
-      fprintf(stderr, "Erreur de reception : %d\n", bufid);
-      terminaison();
-    }
+      //fprintf(stderr, "test1\n");
+      pvm_initsend(PvmDataDefault);
+      pvm_send(parenttid,1);
+      int bufid,size;
+      char *recep_char, *recep_char2;
 
-  //conversion de l entier en chaine de caracteres                                                                                                                                       
-  //conversion(travail_courant_bis, solution);
-  gmp_fprintf(stderr, "travail_courant :%Zd pas :%Zd max_travail :%Zd\n", travail_courant_global_bis, pas_bis, fin_exec_global_bis);
-  fprintf(stderr, "test2\n");
+      bufid = pvm_recv(parenttid, -1 );
+      info = pvm_bufinfo( bufid, &bytes, &type, &source );
+      if(type == 0)
+	{
+	  pvm_upkint(&size, 1, 1);  
+	  recep_char = calloc(size+1, sizeof(char));
+	  pvm_upkbyte(recep_char,size+1 , 1);
+	  gmp_sscanf(recep_char, "%Zd", travail_courant_global_bis);
+	  free(recep_char);
+      
+	  pvm_upkint(&size, 1, 1);
+	  recep_char2 = calloc(size+1, sizeof(char));
+	  pvm_upkbyte(recep_char, size+1, 1);
+	  gmp_sscanf(recep_char, "%Zd", pas_bis);
+	  free(recep_char2);
+	  mpz_add(fin_exec_global_bis, travail_courant_global_bis, pas_bis);
+	  mpz_cdiv_q_ui(pas_bis, pas_bis, nb_threads);
+
+	  if (bufid < 0)
+	    {
+	      fprintf(stderr, "Erreur de reception : %d\n", bufid);
+	      terminaison();
+	    }
+
+	  //conversion de l entier en chaine de caracteres                                                                                                                                       
+	  //conversion(travail_courant_bis, solution);
+	  gmp_fprintf(stderr, "travail_courant_bis :%Zd pas_bis :%Zd max_travail_bis :%Zd\n", travail_courant_global_bis, pas_bis, fin_exec_global_bis);
+	  //fprintf(stderr, "test2\n");
+	}
+      else if (type == 1)
+	{
+	  mpz_set_ui(travail_courant_global_bis, 0);
+	  mpz_set_ui(pas_bis, 0);
+	  mpz_set_ui(fin_exec_global_bis, 0);
+	}
+    }
+  else if (arg == (void*)1)
+    {
+      pvm_initsend(PvmDataDefault);
+      pvm_pkstr(solution); 
+      pvm_send(parenttid,0);
+    }
   pthread_mutex_unlock(&communication_lock);
   return NULL;
 }
@@ -146,6 +168,7 @@ void* demande_donnees(void* arg)
 //fonction qui effectue le calcul
 void calcul_local(mpz_t travail_local, mpz_t fin_exec_local, char* solution)
 {
+  //gmp_fprintf(stderr, "travail_local:%Zd fin_exec_local:%Zd", travail_local, fin_exec_local); 
   conversion(travail_local, solution);
   while(mpz_cmp(fin_exec_local, travail_local)>0)
 	{
@@ -161,6 +184,7 @@ void calcul_local(mpz_t travail_local, mpz_t fin_exec_local, char* solution)
 	      pthread_mutex_lock(&travail_courant_lock);
 	      strcpy(solution_globale, solution);
 	      termine =0;
+	      pthread_create(&communication,NULL, demande_donnees, (void*)1);
 	      pthread_mutex_unlock(&travail_courant_lock);
 	      break;
 	    }
@@ -176,64 +200,78 @@ void pioche_donnees(mpz_t travail_local, mpz_t fin_exec_local)
 {
   mpz_t aux;
   mpz_init(aux);
-  if (mpz_cmp(travail_courant_global, fin_exec_global)<0)
+  //fprintf(stderr, "test pioche 0\n");
+ pthread_mutex_lock(&travail_courant_lock);
+  //si l intervalle actuel est vide et qu il y a des donnees
+  if (mpz_cmp(travail_courant_global, fin_exec_global)>=0 && donnees_reserve==1)
     {
-      pthread_mutex_lock(&travail_courant_lock);
-      if (mpz_cmp(travail_courant_global, fin_exec_global)<0)
+      //fprintf(stderr, "test pn");
+      pthread_mutex_lock(&donnees_reserve_lock);
+      if(donnees_reserve==1)
 	{
-	  mpz_set(travail_local, travail_courant_global);
-	  mpz_set(fin_exec_local, travail_local);
-	  
-	  mpz_sub(aux, fin_exec_global, travail_courant_global);
-	  if (mpz_cmp(aux, pas_global)<0)
-	    {
-	      mpz_set(pas_global, aux);
-	    }
-	  
-	  mpz_add(fin_exec_local,fin_exec_local,  pas_global);
-	  mpz_set(travail_courant_global, fin_exec_local);
+	  pthread_mutex_lock(&communication_lock);
+	  //on recupere les donnees
+	  mpz_set(fin_exec_global, fin_exec_global_bis);
+	  mpz_set(pas_global, pas_bis);
+	  mpz_set(travail_courant_global, travail_courant_global_bis);
+	  donnees_reserve=0;//plus de donnees en reserve
+	  pthread_mutex_unlock(&communication_lock);
 	}
-      if (mpz_cmp(travail_courant_global, fin_exec_global)>=0 && donnees_reserve==1)
+      pthread_mutex_unlock(&donnees_reserve_lock);
+    }
+  //si il n y a plus de travail ni de donnees en reserve
+  else if (mpz_cmp(travail_courant_global, fin_exec_global)>=0 && donnees_reserve==0)
 	{
 	  pthread_mutex_lock(&donnees_reserve_lock);
-	  if(donnees_reserve==1)
-	    {
-	      pthread_mutex_lock(&communication_lock);
-	      mpz_set(fin_exec_global, fin_exec_global_bis);
-	      mpz_set(pas_global, pas_bis);
-	      mpz_set(travail_courant_global, travail_courant_global_bis);
-	      donnees_reserve=0;
-	      pthread_mutex_unlock(&communication_lock);
-	    }
-	  pthread_mutex_unlock(&donnees_reserve_lock);
-	}
-      else if (mpz_cmp(travail_courant_global, fin_exec_global)>=0 && donnees_reserve==0)
-	{
-	  pthread_mutex_lock(&donnees_reserve_lock);
+	  //on indique que le programme a termine
 	  if(donnees_reserve ==0)
 	    {
 	      termine = 0;
 	    }
 	  pthread_mutex_unlock(&donnees_reserve_lock);
 	}
-
-      pthread_mutex_unlock(&travail_courant_lock);
+ 
+  //si il reste du travail dans l intervalle actuel
+  if (mpz_cmp(travail_courant_global, fin_exec_global)<0)
+    {
+	  // fprintf(stderr, "test pioche 1\n");
+	  //on assigne le debut de l intervalle
+      mpz_set(travail_local, travail_courant_global);
+      mpz_set(fin_exec_local, travail_local);
+	  
+      //calcul du pas reel
+      mpz_sub(aux, fin_exec_global, travail_courant_global);
+      if (mpz_cmp(aux, pas_global)<0)
+	{
+	  mpz_set(pas_global, aux);
+	}
+      //calcul de la fin de l intervalle de calcul
+      mpz_add(fin_exec_local,fin_exec_local,  pas_global);
+      //augmentation de l intervalle global
+      mpz_set(travail_courant_global, fin_exec_local);
     }
+      
+  pthread_mutex_unlock(&travail_courant_lock);
+   
 }
 
 //fonction execute par les threads
 void* thread_exec(void *arg)
 {
-  fprintf(stderr, "test-exec1\n");
+  pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+  pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+  //fprintf(stderr, "test-exec1\n");
   char* solution = (char*) calloc(longueur_mdp+1, sizeof(char)); 
   mpz_t travail_local, fin_exec_local;
   mpz_t aux;
   mpz_init(travail_local);
   mpz_init(fin_exec_local);
+  mpz_init(aux);
   while(1)
     {
       if (termine == 0)
 	{
+	  //test de terminaison de boucle
 	  pthread_mutex_lock(&travail_courant_lock);
 	  if (termine == 0)
 	    {
@@ -241,22 +279,30 @@ void* thread_exec(void *arg)
 	    }
 	  pthread_mutex_unlock(&travail_courant_lock);
 	}
+      gmp_fprintf(stderr, "travail_courant_global :%Zd pas_global :%Zd fin_exec_global :%Zd\n", travail_courant_global, pas_global, fin_exec_global);   
       mpz_cdiv_q_ui(aux, fin_exec_global, 2);
-      if (mpz_cmp(travail_courant_global, aux)>0 && donnees_reserve != 1)
+      //si on a consomme plus de la moitie de l intervalle de calcul, et qu il n y a pas de donnees en reserve
+      if (mpz_cmp(travail_courant_global, aux)>=0 && donnees_reserve != 1)
 	{
-	  pthread_mutex_lock(&donnees_reserve_lock);
 	  pthread_mutex_lock(&travail_courant_lock);
-	  if (mpz_cmp(travail_courant_global, aux)>0 && donnees_reserve != 1)
+	  mpz_cdiv_q_ui(aux, fin_exec_global, 2);
+	  pthread_mutex_lock(&donnees_reserve_lock);
+	  if (mpz_cmp(travail_courant_global, aux)>=0 && donnees_reserve != 1)
 	    {
+	      //on demande de nouvelles donnees
+	      donnees_reserve = 1;
 	      pthread_create(&communication,NULL, demande_donnees, NULL);
 	    }
-	  pthread_mutex_unlock(&travail_courant_lock);
 	  pthread_mutex_unlock(&donnees_reserve_lock);
+	  pthread_mutex_unlock(&travail_courant_lock);
+
 	}
+      // on recupere de nouvelle donnees pour le thread
       pioche_donnees(travail_local, fin_exec_local);
       
+      //on calcule l intervalle de donnees du thread
       calcul_local(travail_local, fin_exec_local, solution);
-      fprintf(stderr, "test-exec2\n");
+      //fprintf(stderr, "test-exec2\n");
     }
   return NULL;
 }
@@ -296,6 +342,12 @@ int main (int argc, char* argv[])
 	mpz_set_ui(travail_courant_global, 1);
 	
 	demande_donnees(NULL);
+	//on recupere les donnees
+	mpz_set(fin_exec_global, fin_exec_global_bis);
+	mpz_set(pas_global, pas_bis);
+	mpz_set(travail_courant_global, travail_courant_global_bis);
+	donnees_reserve=0;//plus de donnees en reserve
+	     
 	//pthread_create(&comm, NULL, demande_donnees, NULL);
 	int i;
 	for( i=0;i<nb_threads; i++)
