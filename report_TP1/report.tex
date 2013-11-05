@@ -32,7 +32,7 @@
     {\Huge Rapport TP1 --- PVM\\[0.4cm]}
     \rule{0.75\linewidth}{0.7mm} \\[1.5cm]
 
-    {\Large Bazire Houssin\\Sylvain Vaglica\\Stéphane \bsc{Castelli}\\[2cm]}
+    {\Large Bazire \bsc{Houssin}\\Sylvain \bsc{Vaglica}\\Stéphane \bsc{Castelli}\\[2cm]}
     {\Large Mardi 29 Octobre 2013}
   \end{center}
 \end{titlepage}
@@ -64,6 +64,30 @@ Nous avons donc décidé d'utiliser une bibliothèque spécifique pour le stocka
 Ainsi tous les calculs sont effectués sur des variables de type \texttf{mpz_t}. Et pour les envois de données, la valeur des ces variables est extraite et écrite en base 15 dans un tableau. Ce dernier est ensuite envoyé via PVM, le processus destinataire reçoit un ensemble d'octets (dont le nombre a été communiqué précédement), qui retransformé en type \texttf{mpz_t} pour pouvoir effectuer les opérations.
 
 
+\section{Nombre de solutions}
+
+Un mot de passe peut se définir par sa complexité. Celle ci peut être augmentée facilement par deux moyens : l'augmentation de la longueur maximale et l'augmentation du cardinal de l'alphabet utilisé. En effet, si l'on cherche un mot de passe sans le connaître, par force brute, il faut tester chacune des possibilités dans un ensemble donné, et plus il y a de mot de passes possibles dans cet ensemble, plus la tâche est longue à réaliser pour un ordinateur. Un mot de passe de longueur $k$ sur un alphabet de $n$ lettres fournit ainsi $n^k$ possibilités à tester. Par conséquent, si l'on connaît l'alphabet et que l'on se fixe une longueur maximale de mot de passe à tester $l$, alors on a dans le pire des cas :
+
+\[
+\sum_{k=0}^{l}n^k = \frac{n \cdot (n^l - 1)}{n - 1} = \mathcal{O}(n^l)
+\]
+
+Dans le cas qui nous concerne, l'alphabet est les lettres minuscules comprises entre \emph{a} et \emph{o}, soit 15 lettres. On a donc :
+
+\[
+\sum_{k=0}^{l}15^k = \frac{15 \cdot (15^l - 1)}{14} = \mathcal{O}(15^l)
+\]
+
+Même si cela limite la quantité de possibilités, on peut remarquer que leur nombre croît de manière exponentielle avec la longueur. En conséquence de quoi, au dela d'une certaine valeur il devient impossible pour une machine actuelle de terminer la recherche en un temps raisonnable. Toutefois, la parallèlisation du code et l'utilisation de PVM permettent de repousser cette valeur.
+
+\section{Représentation des données}
+
+%gmp
+%type de données transmis
+%conversion entier/mdp
+>>>>>>> 9efa41b73e792c749c71c0419ac313b847db6e97
+
+
 \section{Le maître}
 Il s'occupe de démarrer les processus esclaves et de leur assigner les tâches. Le processus maître commence par envoyer à chaque esclave le mot de passe en clair, puis transforme l'ensemble des mots de passe possibles en un intervalle d'entiers (fonction bijective décrite dans la partie précédente). Chaque fois qu'un esclave demande du travail, il lui assigne un sous intervalle de l'intervalle initial, en lui donnant le début de l'intervalle et un pas (nombres d'entiers à tester).
 Une gestion dynamique du pas est essentielle pour équilibrer le travail des esclaves et garantir une exécution la plus rapide possible. En effet, il est essentiel que l'ensemble des esclaves terminent le plus proche possible les un des autres.
@@ -84,10 +108,18 @@ En effet, pour chaque entier de l'intervalle, l'esclave le convertit en une chai
 \section{Performances}
 \begin{figure}[h!]
   \centering
+  \includegraphics[width=\textwidth]{plot_log.png}
+  \caption{Tests de performance, représentés sur une échelle logarithmique}
+  \label{perf_loga}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
   \includegraphics[width=\textwidth]{plot.png}
   \caption{Tests de performance}
   \label{perf}
 \end{figure}
+
 \section{Conclusion}
 
 
