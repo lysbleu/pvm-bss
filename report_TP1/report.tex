@@ -80,7 +80,7 @@ Ainsi tous les calculs sont effectués sur des variables de type \texttt{mpz\_t}
 
 
 \section{Le maître}
-Il s'occupe de démarrer les processus esclaves et de leur assigner les tâches. Le processus maître commence par envoyer à chaque esclave le mot de passe en clair, puis transforme l'ensemble des mots de passe possibles en un intervalle d'entiers (fonction bijective décrite dans la partie précédente). Chaque fois qu'un esclave demande du travail, il lui assigne un sous intervalle de l'intervalle initial, en lui donnant le début de l'intervalle et un pas (nombres d'entiers à tester).
+Il s'occupe de démarrer les processus esclaves et de leur assigner les tâches. Le processus maître commence par envoyer à chaque esclave le mot de passe en clair, puis transforme l'ensemble des mots de passe possibles en un intervalle d'entiers (fonction bijective décrite précédement). Chaque fois qu'un esclave demande du travail, il lui assigne un sous intervalle de l'intervalle initial, en lui donnant le début de l'intervalle et un pas (nombres d'entiers à tester).
 Une gestion dynamique du pas est essentielle pour équilibrer le travail des esclaves et garantir une exécution la plus rapide possible. En effet, il est essentiel que l'ensemble des esclaves terminent le plus proche possible les un des autres.
 
 \section{Les esclaves}
@@ -120,7 +120,7 @@ Ainsi des exécutions comme \texttt{./craquage\_multithread 1 1 6 p}, ou \texttt
 
 
 Enfin, sur les exécutions réussies, nous avons observé que les performances étaient décevantes : bien que les échanges de données soient totalement recouverts par les calculs, il semblerait que les prises de verrous ralentissent considérablement l'exécution, pour un résultat plus lent que celui de la version précédente.
-Cependant, peut être est-ce simplement parce que nous avons cherché à résoudre les problèmes ci-dessous, et que nous n'avons pas évalué suffisamment de configuration (nombre de processus, nombre de threads, taille du pas...).
+Cependant, peut être est-ce simplement parce que nous avons cherché à résoudre les problèmes ci-dessous, et que nous n'avons pas évalué suffisamment de configuration (nombre de processus, nombre de threads, taille du pas...). De même, pour des tailles de mot de passe plus élèvées, nous pouvons raisonnablement penser que la version multi-threadée sera bien plus efficace que la première version car le nombre de vérouillages sera moins important par rapport à l'ensemble des calculs à effectuer qui sera lui bien plus important.
 \section{Performances}
 \begin{figure}[h!]
   \centering
