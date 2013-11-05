@@ -193,7 +193,7 @@ void calcul_local(mpz_t travail_local, mpz_t fin_exec_local, char* solution)
 	  incr(solution, longueur_mdp);
 	  mpz_add_ui(travail_local,travail_local,1);
 	}
-}e
+}
 
 //fonction qui effectue la pioche pour le thread
 void pioche_donnees(mpz_t travail_local, mpz_t fin_exec_local)
