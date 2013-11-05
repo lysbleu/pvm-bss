@@ -101,7 +101,7 @@ En effet, pour chaque entier de l'intervalle, l'esclave le convertit en une chai
 
 \section{Conclusion}
 
-
+PVM permet de faire communiquer entre eux différents processus afin que les calculs s'effectuent sur plusieurs unités de calcul, et donc plus rapdiement. Toutefois, l'archaïsme de la bibliothèque, avec par exemple la nécessité d'empaqueter les données avant chaque envoi et les multiples fonctions devant être appelées au préalable, ainsi que la difficulté supplémentaire lors de la recherche des bogues font qu'il est peu aisé de l'utiliser, notamment dans le cas où l'on souhaite multithreader les processus. En effet, PVM n'a pas été adapté pour un usage dans ce contexte, et par conséquent l'utilisateur doit prendre beaucoup de précautions. On peut toutefois remarquer le gain de performance appréciable apporté par la bibliothèque lorsque la taille de l'entrée devient importante. 
 
 
 \end{document}
