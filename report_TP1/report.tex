@@ -32,7 +32,7 @@
     {\Huge Rapport TP1 --- PVM\\[0.4cm]}
     \rule{0.75\linewidth}{0.7mm} \\[1.5cm]
 
-    {\Large Bazire Houssin\\Sylvain Vaglica\\Stéphane \bsc{Castelli}\\[2cm]}
+    {\Large Bazire \bsc{Houssin}\\Sylvain \bsc{Vaglica}\\Stéphane \bsc{Castelli}\\[2cm]}
     {\Large Mardi 29 Octobre 2013}
   \end{center}
 \end{titlepage}
@@ -44,10 +44,48 @@
 PVM est une bibliothèque C et Fortran permettant la communication entre des processus sur une machine parallèle ou un cluster de machines ; elle utilise pour cela un démon lancé sur chaque machine qui se charge du routage des messages, du contrôle des processus et des problèmes pouvant survenir.Créée en 1989, PVM a au fil des décennies perdu en popularité au profit de MPI, mais reste un moyen efficace d'apporter une solution à des problèmes dont la résolution en séquentiel mettrait trop de temps. Au travers de ce projet, il a été réalisé un système distribué de craquage de mot de passe en force brute, sur le modèle maître / esclaves, avec un processus maître créant et distribuant des tâches, et des processus esclaves les exécutant. Un des objectifs principaux du projet, en plus de nous initier à la communication inter-processus et plus particulièrement à PVM, est d'analyser et optimiser la création et la répartition des tâches afin d'obtenir les meilleures performances possibles. Il sera d'abord explicité les choix qui ont été effectués, puis ils seront analysés.
 
 \section{Réprésentation des données}
+L'ensemble des mots de passe possibles de longueur maximale $p$ est un ensemble fini d'éléments énumérables  de la manière suivante:
+\begin{itemise}
+\item a, b, c, ..., o,
+\item aa, ab, ac, ... ao, ba, bb, ... bo, .... oa, ob, ... oo,
+\item .
+\item .
+\item .
+\item $w_{p}$, le mot de longueur $p$ ne contenant que des 'o'
+\end{itemise}
+Chacun est conterti en un entier correspondant à sa position dans l'énumation. Il est alors possible de revenir ensuite au mot initial grâce à la fonction inverse. Grâce à cette conversion en entier, il est plus facile d'énumérer l'ensemble des possibilités car il suffit d'incrémenter un compteur puis de le convertir en chaine de caractères. En effet il suffit d'extraire le reste de la division par 15 (nombre de possibilités par caractère), pour obtenir la première lettre. On soustrait ce reste à l'entier, puis on divise par 15. On effectuer une nouvelle division et on en déduit la lettre suivante du reste et ainsi de suite jusqu'à avoir déterminé toutes les lettres.
+%partie sur le nombre de possibilités à rajouter ici par Stephane
+
+
+\subsection{GMP}
+Comme expliqué dans la section précédente, le nombre de mot de passe possibles est exponentiel en la taille maximale du mot de passe. Or la PVM ne permet l'envoi de grands entiers que jusqu'à ceux pouvant être stockés dans une variable de type  \texttf{unsigned long} (le type \texttf{unsigned long long} n'étant pas supporté par PVM), c'est à dire ayant pour valeur maximale $2^{32}$. Ainsi pour des mots de passe de longueur supérieure à 8, on dépasse déjà la limite de stockage des entiers ($15^{8}$ ~ $2^{32}$ ). 
+
+Nous avons donc décidé d'utiliser une bibliothèque spécifique pour le stockage des grands entiers. Plus précisément, la "GNU Multiple Precision Arithmetic Library" (http://gmplib.org/) aussi abrégée en GMP qui permet de s'affranchir des limitations de PVM et même de la librairie standard C.
+Ainsi tous les calculs sont effectués sur des variables de type \texttf{mpz_t}. Et pour les envois de données, la valeur des ces variables est extraite et écrite en base 15 dans un tableau. Ce dernier est ensuite envoyé via PVM, le processus destinataire reçoit un ensemble d'octets (dont le nombre a été communiqué précédement), qui retransformé en type \texttf{mpz_t} pour pouvoir effectuer les opérations.
+
+
+\section{Nombre de solutions}
+
+Un mot de passe peut se définir par sa complexité. Celle ci peut être augmentée facilement par deux moyens : l'augmentation de la longueur maximale et l'augmentation du cardinal de l'alphabet utilisé. En effet, si l'on cherche un mot de passe sans le connaître, par force brute, il faut tester chacune des possibilités dans un ensemble donné, et plus il y a de mot de passes possibles dans cet ensemble, plus la tâche est longue à réaliser pour un ordinateur. Un mot de passe de longueur $k$ sur un alphabet de $n$ lettres fournit ainsi $n^k$ possibilités à tester. Par conséquent, si l'on connaît l'alphabet et que l'on se fixe une longueur maximale de mot de passe à tester $l$, alors on a dans le pire des cas :
+
+\[
+\sum_{k=0}^{l}n^k = \frac{n \cdot (n^l - 1)}{n - 1} = \mathcal{O}(n^l)
+\]
+
+Dans le cas qui nous concerne, l'alphabet est les lettres minuscules comprises entre \emph{a} et \emph{o}, soit 15 lettres. On a donc :
+
+\[
+\sum_{k=0}^{l}15^k = \frac{15 \cdot (15^l - 1)}{14} = \mathcal{O}(15^l)
+\]
+
+Même si cela limite la quantité de possibilités, on peut remarquer que leur nombre croît de manière exponentielle avec la longueur. En conséquence de quoi, au dela d'une certaine valeur il devient impossible pour une machine actuelle de terminer la recherche en un temps raisonnable. Toutefois, la parallèlisation du code et l'utilisation de PVM permettent de repousser cette valeur.
+
+\section{Représentation des données}
 
 %gmp
 %type de données transmis
 %conversion entier/mdp
+>>>>>>> 9efa41b73e792c749c71c0419ac313b847db6e97
 
 
 \section{Le maître}
@@ -95,10 +133,18 @@ Cependant, peut être est-ce simplement parce que nous avons cherché à résoud
 \section{Performances}
 \begin{figure}[h!]
   \centering
+  \includegraphics[width=\textwidth]{plot_log.png}
+  \caption{Tests de performance, représentés sur une échelle logarithmique}
+  \label{perf_loga}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
   \includegraphics[width=\textwidth]{plot.png}
   \caption{Tests de performance}
   \label{perf}
 \end{figure}
+
 \section{Conclusion}
 
 
