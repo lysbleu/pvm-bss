@@ -48,12 +48,10 @@ L'ensemble des mots de passe possibles de longueur maximale $p$ est un ensemble 
 \begin{itemize}
 \item a, b, c, ..., o,
 \item aa, ab, ac, ... ao, ba, bb, ... bo, .... oa, ob, ... oo,
-\item .
-\item .
-\item .
-\item $w_{p}$, le mot de longueur $p$ ne contenant que des 'o'
+\item ...
+\item ..., $w_{p}$, le mot de longueur $p$ ne contenant que des 'o'
 \end{itemize}
-Chacun est converti en un entier correspondant à sa position dans l'énumation. Il est alors possible de revenir ensuite au mot initial grâce à la fonction inverse. Grâce à cette conversion en entier, il est plus facile d'énumérer l'ensemble des possibilités car il suffit d'incrémenter un compteur puis de le convertir en chaine de caractères. En effet il suffit d'extraire le reste de la division par 15 (nombre de possibilités par caractère), pour obtenir la première lettre. On soustrait ce reste à l'entier, puis on divise par 15. On effectuer une nouvelle division et on en déduit la lettre suivante du reste et ainsi de suite jusqu'à avoir déterminé toutes les lettres.
+Chacun est converti en un entier correspondant à sa position dans l'énumation. Il est alors possible de revenir ensuite au mot initial grâce à la fonction inverse. Grâce à cette conversion en entier, il est plus facile d'énumérer l'ensemble des possibilités car il suffit d'incrémenter un compteur puis de le convertir en chaine de caractères. En effet il suffit d'extraire le reste de la division par 15 (nombre de possibilités par caractère), pour obtenir la première lettre. On soustrait ce reste à l'entier, puis on divise par 15. On effectue une nouvelle division euclidienne et on déduit la lettre suivante du reste et ainsi de suite jusqu'à avoir déterminé toutes les lettres.
 
 
 \subsection{Nombre de solutions}
@@ -73,7 +71,7 @@ Dans le cas qui nous concerne, l'alphabet est les lettres minuscules comprises e
 Même si cela limite la quantité de possibilités, on peut remarquer que leur nombre croît de manière exponentielle avec la longueur. En conséquence de quoi, au dela d'une certaine valeur il devient impossible pour une machine actuelle de terminer la recherche en un temps raisonnable. Toutefois, la parallèlisation du code et l'utilisation de PVM permettent de repousser cette valeur.
 
 \subsection{GMP}
-Comme expliqué dans la section précédente, le nombre de mot de passe possibles est exponentiel en la taille maximale du mot de passe. Or la PVM ne permet l'envoi de grands entiers que jusqu'à ceux pouvant être stockés dans une variable de type  \texttt{unsigned long} (le type \texttt{unsigned long long} n'étant pas supporté par PVM), c'est à dire ayant pour valeur maximale $2^{32}$. Ainsi pour des mots de passe de longueur supérieure à 8, on dépasse déjà la limite de stockage des entiers ($15^{8}$ ~ $2^{32}$ ). 
+Comme expliqué dans la section précédente, le nombre de mot de passe possibles est exponentiel en la taille maximale du mot de passe. Or la PVM ne permet l'envoi de grands entiers que jusqu'à ceux pouvant être stockés dans une variable de type  \texttt{unsigned long} (le type \texttt{unsigned long long} n'étant pas supporté par PVM), c'est à dire ayant pour valeur maximale $2^{32}$. Ainsi pour des mots de passe de longueur supérieure à 8, on dépasse déjà la limite de stockage des entiers ($15^{9}$ > $2^{32}$ ). 
 
 Nous avons donc décidé d'utiliser une bibliothèque spécifique pour le stockage des grands entiers. Plus précisément, la "GNU Multiple Precision Arithmetic Library" (\url{http://gmplib.org/}) aussi abrégée en GMP qui permet de s'affranchir des limitations de PVM et même de la librairie standard C.
 Ainsi tous les calculs sont effectués sur des variables de type \texttt{mpz\_t}. Et pour les envois de données, la valeur des ces variables est extraite et écrite en base 15 dans un tableau. Ce dernier est ensuite envoyé via PVM, le processus destinataire reçoit un ensemble d'octets (dont le nombre a été communiqué précédement), qui retransformé en type \texttt{mpz\_t} pour pouvoir effectuer les opérations.
