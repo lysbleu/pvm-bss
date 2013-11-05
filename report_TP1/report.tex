@@ -76,7 +76,7 @@ Même si cela limite la quantité de possibilités, on peut remarquer que leur n
 Comme expliqué dans la section précédente, le nombre de mot de passe possibles est exponentiel en la taille maximale du mot de passe. Or la PVM ne permet l'envoi de grands entiers que jusqu'à ceux pouvant être stockés dans une variable de type  \texttf{unsigned long} (le type \texttf{unsigned long long} n'étant pas supporté par PVM), c'est à dire ayant pour valeur maximale $2^{32}$. Ainsi pour des mots de passe de longueur supérieure à 8, on dépasse déjà la limite de stockage des entiers ($15^{8}$ ~ $2^{32}$ ). 
 
 Nous avons donc décidé d'utiliser une bibliothèque spécifique pour le stockage des grands entiers. Plus précisément, la "GNU Multiple Precision Arithmetic Library" (http://gmplib.org/) aussi abrégée en GMP qui permet de s'affranchir des limitations de PVM et même de la librairie standard C.
-Ainsi tous les calculs sont effectués sur des variables de type \texttf{mpz_t}. Et pour les envois de données, la valeur des ces variables est extraite et écrite en base 15 dans un tableau. Ce dernier est ensuite envoyé via PVM, le processus destinataire reçoit un ensemble d'octets (dont le nombre a été communiqué précédement), qui retransformé en type \texttf{mpz_t} pour pouvoir effectuer les opérations.
+Ainsi tous les calculs sont effectués sur des variables de type \texttf{mpz_t}. Et pour les envois de données, la valeur des ces variables est extraite et écrite en base 15 dans un tableau. Ce dernier est ensuite envoyé via PVM, le processus destinataire reçoit un ensemble d'octets (dont le nombre a été communiqué précédement), qui est retransformé en type \texttf{mpz_t} pour pouvoir effectuer les opérations.
 
 \section{Représentation des données}
 
@@ -91,6 +91,18 @@ En effet, pour chaque entier de l'intervalle, l'esclave le convertit en une chai
 
 
 \section{La répartition des tâches}
+L'intervalle de travail est aisé à construire : le calcul du maximum de possibilités évoqué précedemment est effectué, il détermine la valeur maximale de notre exécution.
+
+Cette valeur maximale est divisé en fonction de la longueur du mot de passe, et du nombre de processeurs (dans notre cas, en fonction du produit).
+Ce nombre de pas est volontairement petit, afin que le nombre d'échanges de données soit au début le plus réduit possible.
+
+Par la suite,  quand un certain pourcentage des données a été consommé (50\%, 75\%, ....), ce pas est à nouveau divisé, afin d'éviter des problèmes de famine, qui feraient que des processus seraient inactifs, alors que d'autres seraient tout juste resservis.
+Ce procédé est itéré (dans notre cas, 2 fois). Dans l'idéal, le nombre d'itérations devraient dépendre de la longueur du mot de passe (plus le mot de passe est long, plus les intervalles le sont aussi), ainsi que du nombre de processus (plus il y a de processus, plus il y aura de demande).
+
+L'attribution du travail est effectué de manière très simple : l'esclave contacte le maître, et lui demande des données.
+Si le maître possède encore du travail, il en redonne à l'esclave, sinon il l'ajoute dans son nombre d'esclaves ayant terminé leur exécution.
+
+Quand un esclave trouve la solution, il contacte le maître, et lui donne la solution, alors le maître fait stopper tous les esclaves.
 % choix des intervalles
 % demande de travail des esclaves
 % attribution
