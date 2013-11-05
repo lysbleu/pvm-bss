@@ -131,11 +131,13 @@ le test est effectué une première fois sans le verrou, si le test est positif,
 
 
 En pratique, dans notre implémentation nous rencontrons des problèmes (erreurs de segmentation au niveau de l'esclave),que nous pensons dû à des appels de fonctions pvm (en particulier \texttt{pvm\_initsend(PvmDataDefault)}), en particulier quand les échanges de données ne sont pas totalement recouvert (c'est-à-dire quand le mot de passe est petit, et que les processus et threads sont très nombreux).
-Ainsi des exécutions comme \texttt{./craquage\_multithread 1 1 6 p}, ou \texttt{./craquage\_multithread 2 2 9 p} fonctionne parfaitement (entre autres, de nombreuses autres fonctionnent), de même que lorsque l'on remplace p par un mot de passe possible à trouver.
+Ainsi des exécutions comme \texttt{./craquage\_multithread 1 1 6 p}, ou \texttt{./craquage\_multithread 4 4 9 p} fonctionne parfaitement (entre autres, de nombreuses autres fonctionnent), de même que lorsque l'on remplace p par un mot de passe possible à trouver.
 
 
-Enfin, sur les exécutions réussies, nous avons observé que les performances étaient décevantes : bien que les échanges de données soient totalement recouverts par les calculs, il semblerait que les prises de verrous ralentissent considérablement l'exécution, pour un résultat plus lent que celui de la version précédente.
+Enfin, sur les exécutions réussies, nous avons observé que les performances étaient décevantes : bien que les échanges de données soient totalement recouverts par les calculs, il semblerait que les prises de verrous ralentissent considérablement l'exécution, pour un résultat équivalent à celui de la version précédente.
+En effet, sur les exécutions sur des mots de passe de longueur 8 ou 9, avec un noombre de processus de l'ancienne version à 8 ou 16, la version multithreadée (peu importe la configuration : 8 threads 2 procs, 8 procs 2 threads, 4 threads 4 procs), les performances sont identiques : pour un mot de passe de longueur 8, environ 8 sec, et pour un de longueur 9 environ 125sec. 
 Cependant, peut être est-ce simplement parce que nous avons cherché à résoudre les problèmes ci-dessous, et que nous n'avons pas évalué suffisamment de configuration (nombre de processus, nombre de threads, taille du pas...).
+Il est possible que les perfomances soient meilleures pour des mots de passe plus long.
 \section{Performances}
 \begin{figure}[h!]
   \centering
