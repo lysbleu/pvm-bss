@@ -44,10 +44,24 @@
 PVM est une bibliothèque C et Fortran permettant la communication entre des processus sur une machine parallèle ou un cluster de machines ; elle utilise pour cela un démon lancé sur chaque machine qui se charge du routage des messages, du contrôle des processus et des problèmes pouvant survenir.Créée en 1989, PVM a au fil des décennies perdu en popularité au profit de MPI, mais reste un moyen efficace d'apporter une solution à des problèmes dont la résolution en séquentiel mettrait trop de temps. Au travers de ce projet, il a été réalisé un système distribué de craquage de mot de passe en force brute, sur le modèle maître / esclaves, avec un processus maître créant et distribuant des tâches, et des processus esclaves les exécutant. Un des objectifs principaux du projet, en plus de nous initier à la communication inter-processus et plus particulièrement à PVM, est d'analyser et optimiser la création et la répartition des tâches afin d'obtenir les meilleures performances possibles. Il sera d'abord explicité les choix qui ont été effectués, puis ils seront analysés.
 
 \section{Réprésentation des données}
+L'ensemble des mots de passe possibles de longueur maximale $p$ est un ensemble fini d'éléments énumérables  de la manière suivante:
+\begin{itemise}
+\item a, b, c, ..., o,
+\item aa, ab, ac, ... ao, ba, bb, ... bo, .... oa, ob, ... oo,
+\item .
+\item .
+\item .
+\item $w_{p}$, le mot de longueur $p$ ne contenant que des 'o'
+\end{itemise}
+Chacun est conterti en un entier correspondant à sa position dans l'énumation. Il est alors possible de revenir ensuite au mot initial grâce à la fonction inverse. Grâce à cette conversion en entier, il est plus facile d'énumérer l'ensemble des possibilités car il suffit d'incrémenter un compteur puis de le convertir en chaine de caractères. En effet il suffit d'extraire le reste de la division par 15 (nombre de possibilités par caractère), pour obtenir la première lettre. On soustrait ce reste à l'entier, puis on divise par 15. On effectuer une nouvelle division et on en déduit la lettre suivante du reste et ainsi de suite jusqu'à avoir déterminé toutes les lettres.
+%partie sur le nombre de possibilités à rajouter ici par Stephane
 
-%gmp
-%type de données transmis
-%conversion entier/mdp
+
+\subsection{GMP}
+Comme expliqué dans la section précédente, le nombre de mot de passe possibles est exponentiel en la taille maximale du mot de passe. Or la PVM ne permet l'envoi de grands entiers que jusqu'à ceux pouvant être stockés dans une variable de type  \texttf{unsigned long} (le type \texttf{unsigned long long} n'étant pas supporté par PVM), c'est à dire ayant pour valeur maximale $2^{32}$. Ainsi pour des mots de passe de longueur supérieure à 8, on dépasse déjà la limite de stockage des entiers ($15^{8}$ ~ $2^{32}$ ). 
+
+Nous avons donc décidé d'utiliser une bibliothèque spécifique pour le stockage des grands entiers. Plus précisément, la "GNU Multiple Precision Arithmetic Library" (http://gmplib.org/) aussi abrégée en GMP qui permet de s'affranchir des limitations de PVM et même de la librairie standard C.
+Ainsi tous les calculs sont effectués sur des variables de type \texttf{mpz_t}. Et pour les envois de données, la valeur des ces variables est extraite et écrite en base 15 dans un tableau. Ce dernier est ensuite envoyé via PVM, le processus destinataire reçoit un ensemble d'octets (dont le nombre a été communiqué précédement), qui retransformé en type \texttf{mpz_t} pour pouvoir effectuer les opérations.
 
 
 \section{Le maître}
