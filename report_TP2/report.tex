@@ -56,16 +56,22 @@ On répète ensuite $k$ fois les étapes suivantes, $k$ étant le nombre de bloc
 
 A la fin des $k$ étapes, chaque bloc $c_{i,j}$ contient le résultat attendu et les blocs de B sont revenus en position initiale.
 
-\section{Communications}
-Afin d'accélérer le calcul du produit matriciel, celui-ci est découpé en plusieurs fragments et chacun d'entre eux est assigné à un processus différent, ce qui va permettre d'effectuer plusieurs calculs en même temps dans le cas où la machine d'exécution possède plusieurs cœurs, plusieurs processeurs, ou si on a plusieurs machines. Toutefois, si les calculs sont répartis entre plusieurs processus il faut réunir les différents résultats afin d'avoir la réponse finale. Il est donc indispensable de réaliser des communications efficaces afin que le temps gagné en distribuant les calculs ne soit pas perdu parce que les processus attendent du travail, ou parce qu'elle n'arrive pas à retourner leur réponse. C'est là que les différents mécanisme définis dans la norme MPI entrent en jeux : ils permettent au développeur de s'épargner la plupart des soucis qui pourraient apparaître en ne lui laissant que la seule tâche d'organiser l'envoi et la réception de données.
 
+\section{Topologie, répartition des données et communications}
+MPI permet l'utilisation de topologies cartésiennes, configurables selon les dimensions voulues. Dans notre cas, une topologie de dimension 2 est parfaite : en effet, elle permet de représenter la matrice par bloc, avec des coordonnées (i,j) et permet donc de s'affranchir du système de rang, grâce à des fonctions comme \texttt{MPI_Cart_coords}, qui permet d'obtenir le rang du processus en fonction des coordonnées, ou sa fonction réciproque, \texttt{MPI_Cart_rank}.
+L'idée est que chaque processus représente un bloc de la matrice, et qu'ils effectuent les calculs en parallèle, avant de réunir les données.
 
+De plus, avec la creation d'un type bloc, à l'aide de \texttt{MPI_Type_vector} permet d'utiliser assez naturellement les fonctions de communication globale, pour répartir les matrices initiales entre les processus, recréer la matrice finale et échanger à chaque étape de l'algorithme de Fox.
+Cependant, étant donné que MPI considère dans la taille du type l'espacement entre les données ("stride"), il faut redéfinir la taille du type à celle d'un entier à l'aide de \texttt{MPI_Type_create_resized}, et utiliser  les fonctions \texttt{MPI_Gatherv} et \texttt{MPI_Scatterv} (plutôt que \texttt{MPI_Gather} et \texttt{MPI_Scatter}), afin d'indiquer le début de chacun des blocs ((i*n+j)*taille_bloc) dans le tableau de position en argument.
+Cette petite précision étant faite, le reste de l'algorithme se déroule assez naturellement : pour calculer les rotations circulaires, la fonction \texttt{MPI_Cart_shift} nous donne à partir du rang du bloc source son bloc de destination.
 
+Enfin, pour les communicateurs par ligne et colonne, créés avec \texttt{MPI_Comm_split}, il est aisé de déduire le rang d'un processus au sein du communicateur, en fonction de celui dans le monde.
+Ainsi, le rang modulo le nombre de bloc par ligne donne le rang au sein du communicateur ligne, et celui au sein du communicateur colonne est simplement le quotient de rang divisé par le nombre de blocs par ligne (ou colonne, cas carré).
 
-
-\section{Topologie et répartition des données}
-
-
+Pour revenir un peu plus en détails sur les communications, la dispersion des données, la recomposition de la matrice finale et la diffusion à chaque étape se fait à l'aide de fonction de communication globale (respectivement \texttt{MPI_Scatterv}, \texttt{MPI_Gatherv} et \texttt{MPI_Bcast}.
+Seules les communications pour l'échange circulaire de bloc sur les colonnes se fait point à point au sein de chaque communicateur colonne, à l'aide de \textt{MPI_Sendrecv_replace}.
+Les communications sont donc bien réduites au minimum possible.
+ 
 \section{Performances}
 
 \begin{figure}[h!]
