@@ -104,7 +104,7 @@ int main (int argc, char* argv[])
 		
 	      case(1)://esclave veut plus de donnees
 		//prendre en compte la fin des donnees dans le calcul du pas
-		if(nb_changement <= 2  && nb_envoi>=(3*nb_pas/4))
+		if(nb_changement <= 2  && nb_envoi>=(3*nb_pas/4)) //si on a consomme 3/4 des donnees, on divise le pas (se repete 2 fois)
 		  {
 		    mpz_cdiv_q_ui(pas, pas, 2);
 		    nb_envoi = 0;

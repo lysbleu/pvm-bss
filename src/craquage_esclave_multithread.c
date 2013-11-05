@@ -32,6 +32,7 @@ void terminaison()
     {
       //pthread_cancel(threads[i]);
     }
+  free(pthreads);	
   mpz_clear(fin_exec_global);
   mpz_clear(fin_exec_global_bis);
   mpz_clear(pas_global);
@@ -107,28 +108,22 @@ void conversion(mpz_t code_cons, char* solution_arg)
 //fonction qui demande les donnees
 void* demande_donnees(void* arg)
 {
-  int error;
-  //pthread_mutex_lock(&communication_lock);
+  //pthread_mutex_lock(&communication_lock); //fait avant le thread_create
   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
   pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
   int info, bytes, type, source;
-  fprintf(stderr, "Debut demande donnees\n");
   if(arg==NULL)
     {
       //fprintf(stderr, "test1\n");
       pvm_initsend(PvmDataDefault);
-      fprintf(stderr, "Demande donnees avant send\n");
       pvm_send(parenttid,1);
-      fprintf(stderr, "Demande donnees apres send\n");
       int bufid,size;
       char *recep_char, *recep_char2;
-      fprintf(stderr, "Demande donnees avant recv\n");
       bufid = pvm_recv(parenttid, -1 );
       info = pvm_bufinfo( bufid, &bytes, &type, &source );
-      fprintf(stderr, "Demande donnees apres recv\n");
-      if(type == 0)
+      
+      if(type == 0)// tag0 donc nouvelle intervalle recu
 	{
-	  fprintf(stderr, "Demande donnees type 0\n");
 	  pvm_upkint(&size, 1, 1);  
 	  recep_char = calloc(size+1, sizeof(char));
 	  pvm_upkbyte(recep_char,size+1 , 1);
@@ -146,16 +141,13 @@ void* demande_donnees(void* arg)
 	  if (bufid < 0)
 	    {
 	      fprintf(stderr, "Erreur de reception : %d\n", bufid);
-	      terminaison();
+	      pthread_exit(NULL);
 	    }
-
-	  //conversion(travail_courant_bis, solution);
-	  gmp_fprintf(stderr, "travail_courant_bis :%Zd pas_bis :%Zd max_travail_bis :%Zd\n", travail_courant_global_bis, pas_bis, fin_exec_global_bis);
-	  //fprintf(stderr, "test2\n");
+	
+	  //gmp_fprintf(stderr, "travail_courant_bis :%Zd pas_bis :%Zd max_travail_bis :%Zd\n", travail_courant_global_bis, pas_bis, fin_exec_global_bis);
 	}
-      else
+      else //tag 1 donc le maitre n a plus de donnees à partager
 	{
-	  fprintf(stderr, "Demande donnees type 1\n");
 	  mpz_set_ui(travail_courant_global_bis, 0);
 	  mpz_set_ui(pas_bis, 0);
 	  mpz_set_ui(fin_exec_global_bis, 0);
@@ -165,16 +157,12 @@ void* demande_donnees(void* arg)
 	}
       pthread_mutex_unlock(&communication_lock);
     }
-  else if (arg == (void*)1)
+  else if (arg == (void*)1) // un thread a trouve la solution, envoi du resultat au maitre
     {
-      fprintf(stderr, "Envoi solution\n");
       pvm_initsend(PvmDataDefault);
-      fprintf(stderr, "Envoi 2\n");
       pvm_pkstr(solution_globale); 
-      fprintf(stderr, "Envoi 3\n");
       pvm_send(parenttid,0);
     }
-  fprintf(stderr, "Fin demande donnees\n");
   pthread_mutex_unlock(&communication_lock);
   return NULL;
 }
@@ -222,7 +210,6 @@ void pioche_donnees(mpz_t travail_local, mpz_t fin_exec_local)
       if(donnees_reserve==1)
 	{
 	  pthread_mutex_lock(&communication_lock);
-	  fprintf(stderr, "recup donnees\n");
 	  //on recupere les donnees
 	  mpz_set(fin_exec_global, fin_exec_global_bis);
 	  mpz_set(pas_global, pas_bis);
@@ -236,7 +223,6 @@ void pioche_donnees(mpz_t travail_local, mpz_t fin_exec_local)
   //si il reste du travail dans l intervalle actuel
   if (mpz_cmp(travail_courant_global, fin_exec_global)<0)
     {
-      // fprintf(stderr, "test pioche 1\n");
       //on assigne le debut de l intervalle
       mpz_set(travail_local, travail_courant_global);
       mpz_set(fin_exec_local, travail_local);
@@ -261,7 +247,6 @@ void* thread_exec(void *arg)
 {
   pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
   pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-  //fprintf(stderr, "test-exec1\n");
   char* solution = (char*) calloc(longueur_mdp+1, sizeof(char)); 
   mpz_t travail_local, fin_exec_local;
   mpz_t aux;
@@ -291,7 +276,7 @@ void* thread_exec(void *arg)
 	  if (mpz_cmp(travail_courant_global, aux)>=0 && donnees_reserve != 1)
 	    {
 	      //on demande de nouvelles donnees
-	      gmp_fprintf(stderr, "demande de donnees\n");
+	      //gmp_fprintf(stderr, "demande de donnees\n");
 	      donnees_reserve = 1;
 	      pthread_mutex_lock(&communication_lock);
 	      pthread_create(&communication,NULL, demande_donnees, NULL);
@@ -300,22 +285,10 @@ void* thread_exec(void *arg)
 	  pthread_mutex_unlock(&travail_courant_lock);
 	}
       // on recupere de nouvelle donnees pour le thread
-      /*gmp_fprintf(stderr, "\n\navant\n");
-            gmp_fprintf(stderr, "travail_courant_local :%Zd pas_local :%Zd fin_exec_local :%Zd\n", travail_local, pas_global, fin_exec_local);   
-      gmp_fprintf(stderr, "travail_courant_global :%Zd pas_global :%Zd fin_exec_global :%Zd\n", travail_courant_global, pas_global, fin_exec_global);   
-      */
+       pioche_donnees(travail_local, fin_exec_local);
 
-      pioche_donnees(travail_local, fin_exec_local);
-
-      /*
-      gmp_fprintf(stderr, "\napres\n");
-      gmp_fprintf(stderr, "travail_courant_local :%Zd pas_local :%Zd fin_exec_local :%Zd\n", travail_local, pas_global, fin_exec_local);   
-      gmp_fprintf(stderr, "travail_courant_global :%Zd pas_global :%Zd fin_exec_global :%Zd\n", travail_courant_global, pas_global, fin_exec_global);   
-      */
- 
-      //on calcule l intervalle de donnees du thread
+      //on calcule sur l intervalle de donnees du thread
       calcul_local(travail_local, fin_exec_local, solution);
-      //fprintf(stderr, "test-exec2\n");
     }
   return NULL;
 }
@@ -354,6 +327,7 @@ int main (int argc, char* argv[])
 	mpz_set_ui(fin_exec_global, 0);
 	mpz_set_ui(travail_courant_global, 1);
 	
+	pthread_mutex_lock(&communication_lock);
 	demande_donnees(NULL);
 	//on recupere les donnees
 	mpz_set(fin_exec_global, fin_exec_global_bis);
@@ -361,22 +335,19 @@ int main (int argc, char* argv[])
 	mpz_set(travail_courant_global, travail_courant_global_bis);
 	donnees_reserve=0;//plus de donnees en reserve
 	     
-	//pthread_create(&comm, NULL, demande_donnees, NULL);
 	int i;
+	//creation des threads de calcul
 	for( i=0;i<nb_threads; i++)
 	  {
 	    pthread_create(&threads[i], NULL, thread_exec, NULL);
 	  }
 
+	//attente de terminaison
 	for (i=0; i<nb_threads; i++)
 	  {
 	    pthread_join(threads[i], NULL);
 	  }
 	pthread_join(communication, NULL);
-
-	//int bufid, size;
-	//char * recep_char;
-	//char * recep_char2;
 	
 	terminaison();
 	
