@@ -91,6 +91,18 @@ En effet, pour chaque entier de l'intervalle, l'esclave le convertit en une chai
 
 
 \section{La répartition des tâches}
+L'intervalle de travail est aisé à construire : le calcul du maximum de possibilités évoqué précedemment est effectué, il détermine la valeur maximale de notre exécution.
+
+Cette valeur maximale est divisé en fonction de la longueur du mot de passe, et du nombre de processeurs (dans notre cas, en fonction du produit).
+Ce nombre de pas est volontairement petit, afin que le nombre d'échanges de données soit au début le plus réduit possible.
+
+Par la suite,  quand un certain pourcentage des données a été consommé (50\%, 75\%, ....), ce pas est à nouveau divisé, afin d'éviter des problèmes de famine, qui feraient que des processus seraient inactifs, alors que d'autres seraient tout juste resservis.
+Ce procédé est itéré (dans notre cas, 2 fois). Dans l'idéal, le nombre d'itérations devraient dépendre de la longueur du mot de passe (plus le mot de passe est long, plus les intervalles le sont aussi), ainsi que du nombre de processus (plus il y a de processus, plus il y aura de demande).
+
+L'attribution du travail est effectué de manière très simple : l'esclave contacte le maître, et lui demande des données.
+Si le maître possède encore du travail, il en redonne à l'esclave, sinon il l'ajoute dans son nombre d'esclaves ayant terminé leur exécution.
+
+Quand un esclave trouve la solution, il contacte le maître, et lui donne la solution, alors le maître fait stopper tous les esclaves.
 % choix des intervalles
 % demande de travail des esclaves
 % attribution
@@ -116,6 +128,7 @@ Il est important d'appliquer un verrous sur les données suivantes, afin d'évit
 \end{itemize}
 De même, le coût de prise de ces verrous (\texttt{pthread\_mutex\_t}) est élevé, il est donc important de minimiser le nombre de prise, en effectuant des lectures en deux temps dans le cas de conditionnelles par exemple :
 le test est effectué une première fois sans le verrou, si le test est positif, le verrou sur la variable est pris, le test est effectué à nouveau, le code correspondant est effectué, et la variable déverrouillée.
+
 
 En pratique, dans notre implémentation nous rencontrons des problèmes (erreurs de segmentation au niveau de l'esclave),que nous pensons dû à des appels de fonctions pvm (en particulier \texttt{pvm\_initsend(PvmDataDefault)}), en particulier quand les échanges de données ne sont pas totalement recouvert (c'est-à-dire quand le mot de passe est petit, et que les processus et threads sont très nombreux).
 Ainsi des exécutions comme \texttt{./craquage\_multithread 1 1 6 p}, ou \texttt{./craquage\_multithread 2 2 9 p} fonctionne parfaitement (entre autres, de nombreuses autres fonctionnent), de même que lorsque l'on remplace p par un mot de passe possible à trouver.

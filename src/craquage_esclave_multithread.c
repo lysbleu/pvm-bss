@@ -42,7 +42,7 @@ void terminaison()
   free(solution);
   free(mdp);
   fprintf(stderr, "Now exiting\n");
-  pvm_exit();
+  pvm_exit(); //non necessaire car cree par spawn
   exit(1);
 }
 
