@@ -83,7 +83,7 @@ Nous avons donc décidé d'utiliser une bibliothèque spécifique pour le stocka
 Ainsi tous les calculs sont effectués sur des variables de type \texttt{mpz\_t}. Pour les envois de données, la valeur de ces variables est extraite et écrite en base 15 dans un tableau. Ce dernier est ensuite envoyé via PVM, le processus destinataire reçoit un ensemble d'octets (dont le nombre a été communiqué précédemment), qui est ensuite retransformé en type \texttt{mpz\_t} pour pouvoir effectuer les opérations.
 
 
-
+\section{L'implémentation}
 \subsection{Le maître}
 Il s'occupe de démarrer les processus esclaves et de leur assigner les tâches. Le processus maître commence par envoyer à chaque esclave le mot de passe en clair, puis transforme l'ensemble des mots de passe possibles en un intervalle d'entiers (fonction bijective décrite précédemment). Chaque fois qu'un esclave demande du travail, il lui assigne un sous intervalle de l'intervalle initial, en lui donnant le début de l'intervalle et un pas (nombres d'entiers à tester).
 Une gestion dynamique du pas est essentielle pour équilibrer le travail des esclaves et garantir une exécution la plus rapide possible. En effet, il est primordial que l'ensemble des esclaves termine dans un laps de temps court, afin d'éviter une famine de données, et donc une inutilisation de toute la puissance de calcul disponible.
