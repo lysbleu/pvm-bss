@@ -45,15 +45,15 @@ PVM est une bibliothèque C et Fortran permettant la communication entre des pro
 
 \section{Réprésentation des données}
 L'ensemble des mots de passe possibles de longueur maximale $p$ est un ensemble fini d'éléments énumérables  de la manière suivante:
-\begin{itemise}
+\begin{itemize}
 \item a, b, c, ..., o,
 \item aa, ab, ac, ... ao, ba, bb, ... bo, .... oa, ob, ... oo,
 \item .
 \item .
 \item .
 \item $w_{p}$, le mot de longueur $p$ ne contenant que des 'o'
-\end{itemise}
-Chacun est conterti en un entier correspondant à sa position dans l'énumation. Il est alors possible de revenir ensuite au mot initial grâce à la fonction inverse. Grâce à cette conversion en entier, il est plus facile d'énumérer l'ensemble des possibilités car il suffit d'incrémenter un compteur puis de le convertir en chaine de caractères. En effet il suffit d'extraire le reste de la division par 15 (nombre de possibilités par caractère), pour obtenir la première lettre. On soustrait ce reste à l'entier, puis on divise par 15. On effectuer une nouvelle division et on en déduit la lettre suivante du reste et ainsi de suite jusqu'à avoir déterminé toutes les lettres.
+\end{itemize}
+Chacun est converti en un entier correspondant à sa position dans l'énumation. Il est alors possible de revenir ensuite au mot initial grâce à la fonction inverse. Grâce à cette conversion en entier, il est plus facile d'énumérer l'ensemble des possibilités car il suffit d'incrémenter un compteur puis de le convertir en chaine de caractères. En effet il suffit d'extraire le reste de la division par 15 (nombre de possibilités par caractère), pour obtenir la première lettre. On soustrait ce reste à l'entier, puis on divise par 15. On effectuer une nouvelle division et on en déduit la lettre suivante du reste et ainsi de suite jusqu'à avoir déterminé toutes les lettres.
 
 
 \subsection{Nombre de solutions}
@@ -73,10 +73,10 @@ Dans le cas qui nous concerne, l'alphabet est les lettres minuscules comprises e
 Même si cela limite la quantité de possibilités, on peut remarquer que leur nombre croît de manière exponentielle avec la longueur. En conséquence de quoi, au dela d'une certaine valeur il devient impossible pour une machine actuelle de terminer la recherche en un temps raisonnable. Toutefois, la parallèlisation du code et l'utilisation de PVM permettent de repousser cette valeur.
 
 \subsection{GMP}
-Comme expliqué dans la section précédente, le nombre de mot de passe possibles est exponentiel en la taille maximale du mot de passe. Or la PVM ne permet l'envoi de grands entiers que jusqu'à ceux pouvant être stockés dans une variable de type  \texttf{unsigned long} (le type \texttf{unsigned long long} n'étant pas supporté par PVM), c'est à dire ayant pour valeur maximale $2^{32}$. Ainsi pour des mots de passe de longueur supérieure à 8, on dépasse déjà la limite de stockage des entiers ($15^{8}$ ~ $2^{32}$ ). 
+Comme expliqué dans la section précédente, le nombre de mot de passe possibles est exponentiel en la taille maximale du mot de passe. Or la PVM ne permet l'envoi de grands entiers que jusqu'à ceux pouvant être stockés dans une variable de type  \texttt{unsigned long} (le type \texttt{unsigned long long} n'étant pas supporté par PVM), c'est à dire ayant pour valeur maximale $2^{32}$. Ainsi pour des mots de passe de longueur supérieure à 8, on dépasse déjà la limite de stockage des entiers ($15^{8}$ ~ $2^{32}$ ). 
 
-Nous avons donc décidé d'utiliser une bibliothèque spécifique pour le stockage des grands entiers. Plus précisément, la "GNU Multiple Precision Arithmetic Library" (http://gmplib.org/) aussi abrégée en GMP qui permet de s'affranchir des limitations de PVM et même de la librairie standard C.
-Ainsi tous les calculs sont effectués sur des variables de type \texttf{mpz_t}. Et pour les envois de données, la valeur des ces variables est extraite et écrite en base 15 dans un tableau. Ce dernier est ensuite envoyé via PVM, le processus destinataire reçoit un ensemble d'octets (dont le nombre a été communiqué précédement), qui retransformé en type \texttf{mpz_t} pour pouvoir effectuer les opérations.
+Nous avons donc décidé d'utiliser une bibliothèque spécifique pour le stockage des grands entiers. Plus précisément, la "GNU Multiple Precision Arithmetic Library" (\url{http://gmplib.org/}) aussi abrégée en GMP qui permet de s'affranchir des limitations de PVM et même de la librairie standard C.
+Ainsi tous les calculs sont effectués sur des variables de type \texttt{mpz\_t}. Et pour les envois de données, la valeur des ces variables est extraite et écrite en base 15 dans un tableau. Ce dernier est ensuite envoyé via PVM, le processus destinataire reçoit un ensemble d'octets (dont le nombre a été communiqué précédement), qui retransformé en type \texttt{mpz\_t} pour pouvoir effectuer les opérations.
 
 \section{Représentation des données}
 
@@ -114,11 +114,11 @@ Il est important d'appliquer un verrous sur les données suivantes, afin d'évit
 \item le thread de communication avec le maître (PVM n'est pas "thread-safe", donc un seul à la fois)
 \item la variable permettant de savoir si il y a des donnees en réserve, ou si au moins elles ont été demandées.
 \end{itemize}
-De même, le coût de prise de ces verrous (\texttt{pthread_mutex_t}) est élevé, il est donc important de minimiser le nombre de prise, en effectuant des lectures en deux temps dans le cas de conditionnelles par exemple :
+De même, le coût de prise de ces verrous (\texttt{pthread\_mutex\_t}) est élevé, il est donc important de minimiser le nombre de prise, en effectuant des lectures en deux temps dans le cas de conditionnelles par exemple :
 le test est effectué une première fois sans le verrou, si le test est positif, le verrou sur la variable est pris, le test est effectué à nouveau, le code correspondant est effectué, et la variable déverrouillée.
 
-En pratique, dans notre implémentation nous rencontrons des problèmes (erreurs de segmentation au niveau de l'esclave),que nous pensons dû à des appels de fonctions pvm (en particulier pvm_initsend(PvmDataDefault)), en particulier quand les échanges de données ne sont pas totalement recouvert (c'est-à-dire quand le mot de passe est petit, et que les processus et threads sont très nombreux).
-Ainsi des exécutions comme \texttt{./craquage_multithread 1 1 6 p}, ou \texttt{./craquage_multithread 2 2 9 p} fonctionne parfaitement (entre autres, de nombreuses autres fonctionnent), de même que lorsque l'on remplace p par un mot de passe possible à trouver.
+En pratique, dans notre implémentation nous rencontrons des problèmes (erreurs de segmentation au niveau de l'esclave),que nous pensons dû à des appels de fonctions pvm (en particulier \texttt{pvm\_initsend(PvmDataDefault)}), en particulier quand les échanges de données ne sont pas totalement recouvert (c'est-à-dire quand le mot de passe est petit, et que les processus et threads sont très nombreux).
+Ainsi des exécutions comme \texttt{./craquage\_multithread 1 1 6 p}, ou \texttt{./craquage\_multithread 2 2 9 p} fonctionne parfaitement (entre autres, de nombreuses autres fonctionnent), de même que lorsque l'on remplace p par un mot de passe possible à trouver.
 
 
 Enfin, sur les exécutions réussies, nous avons observé que les performances étaient décevantes : bien que les échanges de données soient totalement recouverts par les calculs, il semblerait que les prises de verrous ralentissent considérablement l'exécution, pour un résultat plus lent que celui de la version précédente.
