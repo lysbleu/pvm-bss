@@ -6,23 +6,23 @@
 int main (int argc, char** argv)
 {
 	Atome* at;
-	int taille = parse("data_test.txt", &at, 0, 5);
+	int taille = parse("../data/data_test.txt", &at, 0, 5);
 	displayAtoms(at, taille);
 	free(at);
 	printf("\n");
-	taille = parse("data_test.txt", &at, 1, 5);
+	taille = parse("../data/data_test.txt", &at, 1, 5);
 	displayAtoms(at, taille);
 	free(at);
 	printf("\n");
-	taille = parse("data_test.txt", &at, 2, 5);
+	taille = parse("../data/data_test.txt", &at, 2, 5);
 	displayAtoms(at, taille);
 	free(at);
 	printf("\n");
-	taille = parse("data_test.txt", &at, 3, 5);
+	taille = parse("../data/data_test.txt", &at, 3, 5);
 	displayAtoms(at, taille);
 	free(at);
 	printf("\n");
-	taille = parse("data_test.txt", &at, 4, 5);
+	taille = parse("../data/data_test.txt", &at, 4, 5);
 	displayAtoms(at, taille);
 	free(at);
 	

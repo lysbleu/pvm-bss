@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mpi.h>
-#include <atom.h>
+#include <string.h>
+#include "atom.h"
 
 int main( int argc, char **argv ) {
     if(argc != 3)

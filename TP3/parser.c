@@ -21,8 +21,7 @@ int parse(char* filename, Atome **initialDatas, int rank, int nbProcs) {
     else {
         cursor = (rank * nbLinesByProc + remain) * NB_CHAR_LINE;
     }
-	char buf[51];
-	char *buf2;
+
     fseek(file, cursor, SEEK_SET);
 	*initialDatas = calloc(nbLinesByProc, sizeof(Atome));
 
