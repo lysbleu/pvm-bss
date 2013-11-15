@@ -8,9 +8,9 @@ int main(void)
 	Atome B;
 	Atome C;
 	
-	A.m = 10;
-	B.m = 10;
-	C.m = 20;
+	A.m = 10000000;
+	B.m = 10000000;
+	C.m = 20000000;
 	
 	A.pos[0] = 0;
 	A.pos[1] = 0;
@@ -43,6 +43,8 @@ int main(void)
 	printf("Force totale sur A: %lf\n", FA);
 	printf("Force totale sur B: %lf\n", FB);
 	printf("Force totale sur C: %lf\n", FC);
+	
+	return 1;
 	
 }
 	
