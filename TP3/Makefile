@@ -1,5 +1,5 @@
 CC=mpicc
-CFLAGS=-W -Wall -Wextra
+CFLAGS=-W -Wall -Wextra -std=c99
 LDFLAGS=-lm
 EXEC=interaction
 SRC= $(wildcard *.c)
