@@ -1,4 +1,4 @@
-CC=gcc
+CC=mpicc
 CFLAGS=-W -Wall -Wextra
 LDFLAGS=-lm
 EXEC=interaction
