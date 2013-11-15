@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-W -Wall -Wextra
-LDFLAGS=
+LDFLAGS=-lm
 EXEC=interaction
 SRC= $(wildcard *.c)
 OBJ= $(SRC:.c=.o)
