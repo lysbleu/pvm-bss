@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <mpi.h>
 
 #define NB_CHAR_LINE 50
 int parse(char* filename, Atome **initialDatas, int rank, int nbProcs, int *maxElem) {
@@ -28,29 +29,40 @@ int parse(char* filename, Atome **initialDatas, int rank, int nbProcs, int *maxE
 	}
 
     long cursor = 0;
+    
     if(rank < remain) {
         nbLinesByProc++;
         cursor = rank * nbLinesByProc * NB_CHAR_LINE;
     }
     else {
         cursor = (rank * nbLinesByProc + remain) * NB_CHAR_LINE;
-        if(remain !=0)
-        {
-			(*initialDatas)[nbLinesByProc +1].m = 0; 
-			(*initialDatas)[nbLinesByProc +1].pos[0] = 0;
-			(*initialDatas)[nbLinesByProc +1].pos[1] = 0;
-			(*initialDatas)[nbLinesByProc +1].vit[0] = 0;
-			(*initialDatas)[nbLinesByProc +1].vit[1] = 0;
-		}
     }
 
+	if(nbLinesByProc==0)
+	{
+		printf("Nombre insuffisant de donnees pour autant de processus\n");
+		MPI_Finalize();
+		exit(0);
+	}
+
     fseek(file, cursor, SEEK_SET);
-	*initialDatas = calloc(nbLinesByProc, sizeof(Atome));
+	*initialDatas = calloc(*maxElem, sizeof(Atome));
+
+	if(remain !=0)
+	{
+		(*initialDatas)[*maxElem-1].m = 0; 
+		(*initialDatas)[*maxElem-1].pos[0] = 0;
+		(*initialDatas)[*maxElem-1].pos[1] = 0;
+		(*initialDatas)[*maxElem-1].vit[0] = 0;
+		(*initialDatas)[*maxElem-1].vit[1] = 0;
+	}
 
     for (int i = 0; i < nbLinesByProc; i++) {
         fscanf(file, "%lf %lf %lf %lf %lf\n", &((*initialDatas)[i].m), 
 			&((*initialDatas)[i].pos[0]), &((*initialDatas)[i].pos[1]),
 			&((*initialDatas)[i].vit[0]), &((*initialDatas)[i].vit[1]));
+			(*initialDatas)[i].acc[0]=0;
+			(*initialDatas)[i].acc[1]=0;
     }
     fclose(file);
     return nbLinesByProc;

@@ -5,6 +5,17 @@
 #include "atom.h"
 #include "parser.h"
 
+void copyAtome(Atome *dest, Atome *src)
+{
+		dest->m = src->m;
+		dest->pos[0] = src->pos[0];
+		dest->pos[1] = src->pos[1];
+		dest->vit[0] = src->vit[0];
+		dest->vit[1] = src->vit[1];
+		dest->acc[0] = src->acc[0];
+		dest->acc[1] = src->acc[1];
+}
+
 int main( int argc, char **argv ) {
     if(argc != 4)
     {
@@ -18,8 +29,6 @@ int main( int argc, char **argv ) {
     int mode = atoi(argv[3]);
     char *filename = calloc(strlen(argv[1])+1, sizeof(char));
     strcpy(filename, argv[1]);
-    // parsing
-    int elementsNumber; // argv[?] ?
 
     Atome *initialDatas;
 
@@ -27,7 +36,8 @@ int main( int argc, char **argv ) {
     MPI_Comm_size( MPI_COMM_WORLD, &size);
     MPI_Comm_rank( MPI_COMM_WORLD, &myrank ); 
 	
-	elementsNumber = parse(filename, &initialDatas, myrank, size, &maxElem);
+	int elementsNumber = parse(filename, &initialDatas, myrank, size, &maxElem);
+
     MPI_Comm_size( MPI_COMM_WORLD, &size); //cas ou plus de procs que de lignes dans le fichier
 	
 	Atome *buffer0 = calloc(maxElem, sizeof(Atome));
@@ -62,7 +72,10 @@ int main( int argc, char **argv ) {
     char command[100];
 
     //initialisation du buffer local
-    // TODO copie de initialsData dans buffer0
+	for (int i = 0; i <maxElem; i++)
+	{
+		copyAtome(&(buffer0[i]), &(initialDatas[i]));
+	}
 	
     for(int i = 0; i<=nb_iter; i++)
     {
