@@ -19,6 +19,7 @@ plot:
 
 clean:
 	rm -rf *.o
+	rm -rf results/res*
 
 mrproper: clean
 	rm -rf $(EXEC)

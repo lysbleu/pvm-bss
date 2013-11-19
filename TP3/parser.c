@@ -38,11 +38,12 @@ int parse(char* filename, Atome **initialDatas, int rank, int nbProcs, int *maxE
         cursor = (rank * nbLinesByProc + remain) * NB_CHAR_LINE;
     }
 
-	if(nbLinesByProc==0)
+	if(nbLinesByProc == 0)
 	{
 		printf("Nombre insuffisant de donnees pour autant de processus\n");
-		MPI_Finalize();
-		exit(0);
+		printf("Sera alimente de donnees vides\n");
+		//~ MPI_Finalize();
+		//~ exit(0);
 	}
 
     fseek(file, cursor, SEEK_SET);
@@ -57,13 +58,14 @@ int parse(char* filename, Atome **initialDatas, int rank, int nbProcs, int *maxE
 		(*initialDatas)[*maxElem-1].vit[1] = 0;
 	}
 
-    for (int i = 0; i < nbLinesByProc; i++) {
-        fscanf(file, "%lf %lf %lf %lf %lf\n", &((*initialDatas)[i].m), 
+	for (int i = 0; i < nbLinesByProc; i++) {
+		fscanf(file, "%lf %lf %lf %lf %lf\n", &((*initialDatas)[i].m), 
 			&((*initialDatas)[i].pos[0]), &((*initialDatas)[i].pos[1]),
 			&((*initialDatas)[i].vit[0]), &((*initialDatas)[i].vit[1]));
 			(*initialDatas)[i].acc[0]=0;
 			(*initialDatas)[i].acc[1]=0;
-    }
+	}
+
     fclose(file);
     return nbLinesByProc;
 }
