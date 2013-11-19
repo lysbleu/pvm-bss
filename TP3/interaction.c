@@ -6,31 +6,31 @@
 #include "parser.h"
 
 int main( int argc, char **argv ) {
-    if(argc != 3)
+    if(argc != 4)
     {
-        printf("usage: ./interaction nom_de_fichier mode\n");
+        printf("usage: ./interaction nom_de_fichier nb_iter mode\n");
         return EXIT_FAILURE;
     }
 
     MPI_Init( NULL, NULL ); 
     
-    int mode = atoi(argv[2]);
+    int nb_iter = atoi(argv[2]);
+    int mode = atoi(argv[3]);
     char *filename = calloc(strlen(argv[1])+1, sizeof(char));
     // parsing
     int elementsNumber; // argv[?] ?
 
     Atome *initialDatas;
 
-    int myrank, size;
+    int myrank, size, maxElem;
     MPI_Comm_size( MPI_COMM_WORLD, &size);
-
     MPI_Comm_rank( MPI_COMM_WORLD, &myrank ); 
-    MPI_Comm_size( MPI_COMM_WORLD, &size);
 	
-	elementsNumber = parse(filename, &initialDatas, myrank, size);
+	elementsNumber = parse(filename, &initialDatas, myrank, size, &maxElem);
+    MPI_Comm_size( MPI_COMM_WORLD, &size); //cas ou plus de procs que de lignes dans le fichier
 	
-	Atome *buffer0 = calloc(elementsNumber, sizeof(Atome));
-    Atome *buffer1 = calloc(elementsNumber, sizeof(Atome));
+	Atome *buffer0 = calloc(maxElem, sizeof(Atome));
+    Atome *buffer1 = calloc(maxElem, sizeof(Atome));
 	
     int blockLength = 3;
     MPI_Datatype object;
@@ -43,26 +43,27 @@ int main( int argc, char **argv ) {
     MPI_Request evenSend;
     MPI_Request evenReceive;
     
-    MPI_Send_init(buffer0, elementsNumber, object, (myrank + 1) % size, 2,
+    MPI_Send_init(buffer0, maxElem, object, (myrank + 1) % size, 2,
 				MPI_COMM_WORLD, &evenSend);
-    MPI_Send_init(buffer1, elementsNumber, object, (myrank + 1) % size, 1,
+    MPI_Send_init(buffer1, maxElem, object, (myrank + 1) % size, 1,
 				MPI_COMM_WORLD, &oddSend);
-    MPI_Recv_init(buffer1, elementsNumber, object, (myrank + 1) % size, 2,
+    MPI_Recv_init(buffer1, maxElem, object, (myrank + 1) % size, 2,
 				MPI_COMM_WORLD, &evenReceive);
-    MPI_Recv_init(buffer0, elementsNumber, object, (myrank + 1) % size, 1,
+    MPI_Recv_init(buffer0, maxElem, object, (myrank + 1) % size, 1,
 				MPI_COMM_WORLD, &oddReceive);
         
-    
-    // TODO
-    while(42) {
+    //initialisation du buffer local
+    // TODO copie de initialsData dans buffer0
+    for(int i = 0; i<=nb_iter; i++)
+    {
         MPI_Start(&evenSend);
         MPI_Start(&evenReceive);
-        // TODO
+		//TODO calcul
         MPI_Wait(&evenReceive,MPI_STATUS_IGNORE);
 
         MPI_Start(&oddSend);
         MPI_Start(&oddReceive);
-        // TODO
+        // TODO calcul
         MPI_Wait(&oddReceive,MPI_STATUS_IGNORE);
         
     }

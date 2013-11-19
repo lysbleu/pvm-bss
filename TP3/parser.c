@@ -5,13 +5,22 @@
 #include <math.h>
 
 #define NB_CHAR_LINE 50
-int parse(char* filename, Atome **initialDatas, int rank, int nbProcs) {
+int parse(char* filename, Atome **initialDatas, int rank, int nbProcs, int *maxElem) {
     FILE *file = fopen(filename, "r");
     fseek(file, 0, SEEK_END);
-
+	
     long nbLines = (long) floor( (ftell(file)) / NB_CHAR_LINE);
     int nbLinesByProc = nbLines / nbProcs;
     int remain  = nbLines % nbProcs;
+
+	if(remain == 0)
+	{
+		*maxElem = nbLinesByProc;
+	}
+	else
+	{
+		*maxElem = nbLinesByProc +1;
+	}
 
     long cursor = 0;
     if(rank < remain) {
@@ -20,6 +29,12 @@ int parse(char* filename, Atome **initialDatas, int rank, int nbProcs) {
     }
     else {
         cursor = (rank * nbLinesByProc + remain) * NB_CHAR_LINE;
+        
+        (*initialDatas)[nbLinesByProc +1].m = 0; 
+		(*initialDatas)[nbLinesByProc +1].pos[0] = 0;
+		(*initialDatas)[nbLinesByProc +1].pos[1] = 0;
+		(*initialDatas)[nbLinesByProc +1].vit[0] = 0;
+		(*initialDatas)[nbLinesByProc +1].vit[1] = 0;
     }
 
     fseek(file, cursor, SEEK_SET);
