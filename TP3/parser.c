@@ -7,6 +7,11 @@
 #define NB_CHAR_LINE 50
 int parse(char* filename, Atome **initialDatas, int rank, int nbProcs, int *maxElem) {
     FILE *file = fopen(filename, "r");
+    if(file == NULL)
+    {
+		printf("Erreur de fichier\n");
+		exit(1);
+	}
     fseek(file, 0, SEEK_END);
 	
     long nbLines = (long) floor( (ftell(file)) / NB_CHAR_LINE);
@@ -29,12 +34,14 @@ int parse(char* filename, Atome **initialDatas, int rank, int nbProcs, int *maxE
     }
     else {
         cursor = (rank * nbLinesByProc + remain) * NB_CHAR_LINE;
-        
-        (*initialDatas)[nbLinesByProc +1].m = 0; 
-		(*initialDatas)[nbLinesByProc +1].pos[0] = 0;
-		(*initialDatas)[nbLinesByProc +1].pos[1] = 0;
-		(*initialDatas)[nbLinesByProc +1].vit[0] = 0;
-		(*initialDatas)[nbLinesByProc +1].vit[1] = 0;
+        if(remain !=0)
+        {
+			(*initialDatas)[nbLinesByProc +1].m = 0; 
+			(*initialDatas)[nbLinesByProc +1].pos[0] = 0;
+			(*initialDatas)[nbLinesByProc +1].pos[1] = 0;
+			(*initialDatas)[nbLinesByProc +1].vit[0] = 0;
+			(*initialDatas)[nbLinesByProc +1].vit[1] = 0;
+		}
     }
 
     fseek(file, cursor, SEEK_SET);
