@@ -4,6 +4,7 @@
 #include <string.h>
 #include "atom.h"
 #include "parser.h"
+#include <unistd.h>
 
 void copyAtome(Atome *dest, Atome *src)
 {
@@ -36,31 +37,33 @@ int main( int argc, char **argv ) {
     MPI_Comm_size( MPI_COMM_WORLD, &size);
     MPI_Comm_rank( MPI_COMM_WORLD, &myrank ); 
 	
-	int elementsNumber = parse(filename, &initialDatas, myrank, size, &maxElem);
+    int elementsNumber = parse(filename, &initialDatas, myrank, size, &maxElem);
 
-	Atome *buffer0 = calloc(maxElem, sizeof(Atome));
+    Atome *buffer0 = calloc(maxElem, sizeof(Atome));
     Atome *buffer1 = calloc(maxElem, sizeof(Atome));
 	
     int blockLength = 3;
     MPI_Datatype object;
-    MPI_Aint stride = sizeof(Atome);
+    MPI_Aint stride = sizeof(Atome)/sizeof(double);
     MPI_Type_vector(3, blockLength, stride, MPI_DOUBLE, &object);
     MPI_Type_commit(&object); 
     
     MPI_Request sendRequest[2];
     MPI_Request recvRequest[2];
 
-    //~ MPI_Send_init(buffer0, maxElem, object, (myrank + 1) % size, 2,
-				//~ MPI_COMM_WORLD, &(sendRequest[0]));
-				//~ 
-    //~ MPI_Send_init(buffer1, maxElem, object, (myrank + 1) % size, 1,
-				//~ MPI_COMM_WORLD, &(sendRequest[1]));
-				//~ 
-    //~ MPI_Recv_init(buffer1, maxElem, object, (myrank + size -1) % size, 2,
-				//~ MPI_COMM_WORLD, &(recvRequest[0]));
-				//~ 
-    //~ MPI_Recv_init(buffer0, maxElem, object, (myrank + size -1) % size, 1,
-				//~ MPI_COMM_WORLD, &(recvRequest[1]));
+    sleep(myrank);
+    printf("proc:%d, src:%d dest:%d maxElem:%d, blocklength:%d, stride:%u\n", myrank, (myrank +size - 1) % size, (myrank + 1) % size, maxElem, blockLength, stride);
+    MPI_Send_init(buffer0, maxElem, object, (myrank + 1) % size, 2,
+				 MPI_COMM_WORLD, &(sendRequest[0]));
+				
+    MPI_Send_init(buffer1, maxElem, object, (myrank + 1) % size, 1,
+				MPI_COMM_WORLD, &(sendRequest[1]));
+				 
+    MPI_Recv_init(buffer1, maxElem, object, (myrank + size -1) % size, 2,
+				 MPI_COMM_WORLD, &(recvRequest[0]));
+				 
+    MPI_Recv_init(buffer0, maxElem, object, (myrank + size -1) % size, 1,
+				 MPI_COMM_WORLD, &(recvRequest[1]));
     
     char command[200];
 
@@ -73,34 +76,22 @@ int main( int argc, char **argv ) {
 	{
 		for(int i = 0; i<size; i++)
 		{
-			//~ MPI_Start(&(sendRequest[i%2]));
-			if (i%2 == 0)
-			{
-			MPI_Isend(buffer0, maxElem, object, (myrank + 1) % size, 2,
-				MPI_COMM_WORLD, &(sendRequest[0]));	
-		    MPI_Irecv(buffer1, maxElem, object, (myrank + size -1) % size, 2,
-				MPI_COMM_WORLD, &(recvRequest[0]));
-			}
-			else
-			{
-			MPI_Isend(buffer1, maxElem, object, (myrank + 1) % size, 1,
-				MPI_COMM_WORLD, &(sendRequest[1]));	
-		    MPI_Irecv(buffer0, maxElem, object, (myrank + size -1) % size, 1,
-				MPI_COMM_WORLD, &(recvRequest[1]));
-			}
-							
-			//~ MPI_Start(&(recvRequest[i%2]));
+			MPI_Start(&(sendRequest[i%2]));
+			if(i ==0 && k==0)
+			  MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Start(&(recvRequest[i%2]));
 			
 			if(i!=0)//cas general
 			{
 				//TODO calcul
 			}
-			else//cas particulier, ne pas prendre en compte l influence sur soit meme
+			else//cas particulier, ne pas prendre en compte l influence sur soi meme
 			{
 				//TODO calcul
 			}
 			MPI_Wait(&(recvRequest[i%2]),&status);
-			//~ MPI_Wait(&(sendRequest[i%2]),MPI_STATUS_IGNORE);
+			printf("Proc:%d Status:%d\n", myrank, status);
+			//MPI_Wait(&(sendRequest[i%2]),MPI_STATUS_IGNORE);
 		}
 		  //TODO calcul de fin
 		//ecriture du resultat
@@ -121,14 +112,14 @@ int main( int argc, char **argv ) {
 		}
     }
     printf("Fin programme\n");
-	//~ MPI_Request_free(&(sendRequest[0]));
-	//~ MPI_Request_free(&(sendRequest[1]));
-	//~ MPI_Request_free(&(recvRequest[0]));
-	//~ MPI_Request_free(&(recvRequest[1]));
-	MPI_Type_free(&object);
-	free(buffer0);
+    MPI_Request_free(&(sendRequest[0]));
+    MPI_Request_free(&(sendRequest[1]));
+    MPI_Request_free(&(recvRequest[0]));
+    MPI_Request_free(&(recvRequest[1]));
+    MPI_Type_free(&object);
+    free(buffer0);
     free(buffer1);
-	free(initialDatas);
+    free(initialDatas);
 
     MPI_Finalize();
     return EXIT_SUCCESS;
