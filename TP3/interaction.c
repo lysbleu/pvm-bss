@@ -51,8 +51,8 @@ int main( int argc, char **argv ) {
     MPI_Request sendRequest[2];
     MPI_Request recvRequest[2];
 
-    sleep(myrank);
-    printf("proc:%d, src:%d dest:%d maxElem:%d, blocklength:%d, stride:%u\n", myrank, (myrank +size - 1) % size, (myrank + 1) % size, maxElem, blockLength, stride);
+    //~ sleep(myrank);
+    //~ printf("proc:%d, src:%d dest:%d maxElem:%d, blocklength:%d, stride:%u\n", myrank, (myrank +size - 1) % size, (myrank + 1) % size, maxElem, blockLength, stride);
     MPI_Send_init(buffer0, maxElem, object, (myrank + 1) % size, 2,
 				 MPI_COMM_WORLD, &(sendRequest[0]));
 				
@@ -77,8 +77,8 @@ int main( int argc, char **argv ) {
 		for(int i = 0; i<size; i++)
 		{
 			MPI_Start(&(sendRequest[i%2]));
-			if(i ==0 && k==0)
-			  MPI_Barrier(MPI_COMM_WORLD);
+			//~ if(i ==0 && k==0)
+			  //~ MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Start(&(recvRequest[i%2]));
 			
 			if(i!=0)//cas general
@@ -89,8 +89,8 @@ int main( int argc, char **argv ) {
 			{
 				//TODO calcul
 			}
-			MPI_Wait(&(recvRequest[i%2]),&status);
-			printf("Proc:%d Status:%d\n", myrank, status);
+			MPI_Wait(&(recvRequest[i%2]),MPI_STATUS_IGNORE);
+			//~ printf("Proc:%d Status:%d\n", myrank, status);
 			//MPI_Wait(&(sendRequest[i%2]),MPI_STATUS_IGNORE);
 		}
 		  //TODO calcul de fin
@@ -111,7 +111,7 @@ int main( int argc, char **argv ) {
 			}
 		}
     }
-    printf("Fin programme\n");
+    //~ printf("Fin programme\n");
     MPI_Request_free(&(sendRequest[0]));
     MPI_Request_free(&(sendRequest[1]));
     MPI_Request_free(&(recvRequest[0]));
