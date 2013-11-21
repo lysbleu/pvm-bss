@@ -24,7 +24,7 @@ int main( int argc, char **argv ) {
     }
 
     MPI_Init( NULL, NULL ); 
-    
+    MPI_Status status;
     int nb_iter = atoi(argv[2]);
     int mode = atoi(argv[3]);
     char *filename = calloc(strlen(argv[1])+1, sizeof(char));
@@ -50,17 +50,17 @@ int main( int argc, char **argv ) {
     MPI_Request sendRequest[2];
     MPI_Request recvRequest[2];
 
-    MPI_Send_init(buffer0, maxElem, object, (myrank + 1) % size, 2,
-				MPI_COMM_WORLD, &(sendRequest[0]));
-				
-    MPI_Send_init(buffer1, maxElem, object, (myrank + 1) % size, 1,
-				MPI_COMM_WORLD, &(sendRequest[1]));
-				
-    MPI_Recv_init(buffer1, maxElem, object, (myrank + size -1) % size, 2,
-				MPI_COMM_WORLD, &(recvRequest[0]));
-				
-    MPI_Recv_init(buffer0, maxElem, object, (myrank + size -1) % size, 1,
-				MPI_COMM_WORLD, &(recvRequest[1]));
+    //~ MPI_Send_init(buffer0, maxElem, object, (myrank + 1) % size, 2,
+				//~ MPI_COMM_WORLD, &(sendRequest[0]));
+				//~ 
+    //~ MPI_Send_init(buffer1, maxElem, object, (myrank + 1) % size, 1,
+				//~ MPI_COMM_WORLD, &(sendRequest[1]));
+				//~ 
+    //~ MPI_Recv_init(buffer1, maxElem, object, (myrank + size -1) % size, 2,
+				//~ MPI_COMM_WORLD, &(recvRequest[0]));
+				//~ 
+    //~ MPI_Recv_init(buffer0, maxElem, object, (myrank + size -1) % size, 1,
+				//~ MPI_COMM_WORLD, &(recvRequest[1]));
     
     char command[200];
 
@@ -73,8 +73,24 @@ int main( int argc, char **argv ) {
 	{
 		for(int i = 0; i<size; i++)
 		{
-			MPI_Start(&(sendRequest[i%2]));
-			MPI_Start(&(recvRequest[i%2]));
+			//~ MPI_Start(&(sendRequest[i%2]));
+			if (i%2 == 0)
+			{
+			MPI_Isend(buffer0, maxElem, object, (myrank + 1) % size, 2,
+				MPI_COMM_WORLD, &(sendRequest[0]));	
+		    MPI_Irecv(buffer1, maxElem, object, (myrank + size -1) % size, 2,
+				MPI_COMM_WORLD, &(recvRequest[0]));
+			}
+			else
+			{
+			MPI_Isend(buffer1, maxElem, object, (myrank + 1) % size, 1,
+				MPI_COMM_WORLD, &(sendRequest[1]));	
+		    MPI_Irecv(buffer0, maxElem, object, (myrank + size -1) % size, 1,
+				MPI_COMM_WORLD, &(recvRequest[1]));
+			}
+							
+			//~ MPI_Start(&(recvRequest[i%2]));
+			
 			if(i!=0)//cas general
 			{
 				//TODO calcul
@@ -83,26 +99,36 @@ int main( int argc, char **argv ) {
 			{
 				//TODO calcul
 			}
-			MPI_Wait(&(recvRequest[i%2]),MPI_STATUS_IGNORE);
+			MPI_Wait(&(recvRequest[i%2]),&status);
+			//~ MPI_Wait(&(sendRequest[i%2]),MPI_STATUS_IGNORE);
 		}
 		  //TODO calcul de fin
 		//ecriture du resultat
 		for (int j=0; j<elementsNumber; j++)
 		{
-			sprintf(command, "echo %lf %lf >> results/res_%d_%d.txt", initialDatas[j].pos[0],initialDatas[j].pos[1], myrank, j);	
-			//~ printf("Commande: %s\n", command);
-			system(command);
+			if(j==0)
+			{
+				sprintf(command, "echo %lf %lf > results/res_%d_%d.txt", initialDatas[j].pos[0],initialDatas[j].pos[1], myrank, j);	
+				//~ printf("Commande: %s\n", command);
+				system(command);
+			}
+			else
+			{
+				sprintf(command, "echo %lf %lf >> results/res_%d_%d.txt", initialDatas[j].pos[0],initialDatas[j].pos[1], myrank, j);	
+				//~ printf("Commande: %s\n", command);
+				system(command);	
+			}
 		}
     }
     printf("Fin programme\n");
-	/*MPI_Request_free(&(sendRequest[0]));
-	MPI_Request_free(&(sendRequest[1]));
-	MPI_Request_free(&(recvRequest[0]));
-	MPI_Request_free(&(recvRequest[1]));
-	MPI_Type_free(&object);*/
-	//~ free(buffer0);
-    //~ free(buffer1);
-	//~ free(initialDatas);
+	//~ MPI_Request_free(&(sendRequest[0]));
+	//~ MPI_Request_free(&(sendRequest[1]));
+	//~ MPI_Request_free(&(recvRequest[0]));
+	//~ MPI_Request_free(&(recvRequest[1]));
+	MPI_Type_free(&object);
+	free(buffer0);
+    free(buffer1);
+	free(initialDatas);
 
     MPI_Finalize();
     return EXIT_SUCCESS;

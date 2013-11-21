@@ -15,6 +15,9 @@ interaction: $(OBJ)
 
 plot:
 
+launch:
+	mpiexec -np 4 interaction data/data_test.txt 10 1
+
 .PHONY: clean mrproper
 
 clean:
