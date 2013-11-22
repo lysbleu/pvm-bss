@@ -25,12 +25,7 @@ int main( int argc, char **argv ) {
     }
 
     MPI_Init( NULL, NULL ); 
-    struct {
-            double min;
-            int   rank;
-        } paire;
     
-    MPI_Status status;
     int nb_iter = atoi(argv[2]);
     int mode = atoi(argv[3]);
     double dt = 0;
@@ -87,21 +82,28 @@ int main( int argc, char **argv ) {
 	}
 	
 	//initialisation du tableau des distances min
-	//TODO
+	//faire un tour d'algo
+	for(int i = 0; i<size; i++)
+	{
+		MPI_SendRecv(initialDatas, maxElem, object, (myrank + 1) % size, 2,
+                buffer0, recvcount,  object, (myrank + size - 1) % size, MPI_ANY_TAG,
+                MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+               	//TODO
+               	//dist_min[i]=min(dist recues)
+	}
+	
 	
 	//boucle principale (nb_iter == nb de points par courbe)
 	for (int k = 0; k<nb_iter; k++)
 	{
-		//calcul du dt local
-			//TODO calcul de fin de tour
-			//min_dist = min(min_dist_tab, elementsNumber)
-			//dt = min(dt_tab);
+		//calcul du dt local pour chacun des points, on garde le min
+			//TODO 
+			//
+			//dt_min
 		  
 		//calcul du dt global avec un MPI_Allreduce
-		//TODO ?
-		//~ MPI_Allreduce(MPI_IN_PLACE, &dt, 1, MPI_DOUBLE, MPI_MIN, int root, MPI_Comm comm)
-		MPI_Allreduce(MPI_IN_PLACE, &dt, 1, MPI_DOUBLE_INT, MPI_MINLOC, int root, MPI_Comm comm)
-		dt =
+		MPI_Allreduce(MPI_IN_PLACE, &dt, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+		
 		//pour chaque processus
 		for(int i = 0; i<size; i++)
 		{
@@ -110,7 +112,7 @@ int main( int argc, char **argv ) {
 			MPI_Start(&(recvRequest[i%2]));
 			
 			//calcul des forces et influence sur les positions 
-			for (int l=0; l<maxElem)
+			for (int l=0; l<maxElem; l++)
 			{
 				if(i!=0)//cas general
 				{
