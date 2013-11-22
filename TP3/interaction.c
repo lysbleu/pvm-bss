@@ -25,9 +25,15 @@ int main( int argc, char **argv ) {
     }
 
     MPI_Init( NULL, NULL ); 
+    struct {
+            double min;
+            int   rank;
+        } paire;
+    
     MPI_Status status;
     int nb_iter = atoi(argv[2]);
     int mode = atoi(argv[3]);
+    double dt = 0;
     char *filename = calloc(strlen(argv[1])+1, sizeof(char));
     strcpy(filename, argv[1]);
 
@@ -37,13 +43,21 @@ int main( int argc, char **argv ) {
     MPI_Comm_size( MPI_COMM_WORLD, &size);
     MPI_Comm_rank( MPI_COMM_WORLD, &myrank ); 
 	
+	//parsing du fichier de configuration
+	/*
+	 * format : 50 caracteres par ligne, flottants en ecriture scientifique
+	 * flottant : 1.1111E10 (9 caracteres)
+	 * ordre : masse pos1 pos2 vit1 vit2\n
+	 */	
     int elementsNumber = parse(filename, &initialDatas, myrank, size, &maxElem);
 
     Atome *buffer0 = calloc(maxElem, sizeof(Atome));
     Atome *buffer1 = calloc(maxElem, sizeof(Atome));
 	
-    int blockLength = 3;
-    MPI_Datatype object;
+    int blockLength = 3; //nb de donnees a envoyer
+    
+    //type MPI pour Atome, en n envoyant seulement m, pos1, pos2
+    MPI_Datatype object; 
     MPI_Aint stride = sizeof(Atome)/sizeof(double);
     MPI_Type_vector(1, blockLength, stride, MPI_DOUBLE, &object);
     MPI_Type_commit(&object); 
@@ -51,8 +65,7 @@ int main( int argc, char **argv ) {
     MPI_Request sendRequest[2];
     MPI_Request recvRequest[2];
 
-    //~ sleep(myrank);
-    //~ printf("proc:%d, src:%d dest:%d maxElem:%d, blocklength:%d, stride:%u\n", myrank, (myrank +size - 1) % size, (myrank + 1) % size, maxElem, blockLength, stride);
+	//initialisation des communications persistantes
     MPI_Send_init(buffer0, maxElem, object, (myrank + 1) % size, 2,
 				 MPI_COMM_WORLD, &(sendRequest[0]));
 				
@@ -72,53 +85,74 @@ int main( int argc, char **argv ) {
 	{
 		copyAtome(&(buffer0[i]), &(initialDatas[i]));
 	}
+	
+	//initialisation du tableau des distances min
+	//TODO
+	
+	//boucle principale (nb_iter == nb de points par courbe)
 	for (int k = 0; k<nb_iter; k++)
 	{
+		//calcul du dt local
+			//TODO calcul de fin de tour
+			//min_dist = min(min_dist_tab, elementsNumber)
+			//dt = min(dt_tab);
+		  
+		//calcul du dt global avec un MPI_Allreduce
+		//TODO ?
+		//~ MPI_Allreduce(MPI_IN_PLACE, &dt, 1, MPI_DOUBLE, MPI_MIN, int root, MPI_Comm comm)
+		MPI_Allreduce(MPI_IN_PLACE, &dt, 1, MPI_DOUBLE_INT, MPI_MINLOC, int root, MPI_Comm comm)
+		dt =
+		//pour chaque processus
 		for(int i = 0; i<size; i++)
 		{
+			//debut des communications non bloquantes
 			MPI_Start(&(sendRequest[i%2]));
-			//~ if(i ==0 && k==0)
-			  //~ MPI_Barrier(MPI_COMM_WORLD);
 			MPI_Start(&(recvRequest[i%2]));
 			
-			if(i!=0)//cas general
+			//calcul des forces et influence sur les positions 
+			for (int l=0; l<maxElem)
 			{
-				//TODO calcul
+				if(i!=0)//cas general
+				{
+					//TODO calcul
+				}
+				else//cas particulier, ne pas prendre en compte l influence sur soi meme
+				{
+					//TODO calcul
+				}
+					
+				//MAJ du tab des distances min
+				//TODO
 			}
-			else//cas particulier, ne pas prendre en compte l influence sur soi meme
-			{
-				//TODO calcul
-			}
+			//attente de la reception des donnees avant l etape suivante
 			MPI_Wait(&(recvRequest[i%2]),MPI_STATUS_IGNORE);
-			//~ printf("Proc:%d Status:%d\n", myrank, status);
-			//MPI_Wait(&(sendRequest[i%2]),MPI_STATUS_IGNORE);
 		}
-		//calcul du dt, ...
-		  //TODO calcul de fin de tour
-		  
+		
 		//ecriture du resultat
 		for (int j=0; j<elementsNumber; j++)
 		{
-			if(j==0)
+			if(j==0)//ecrasement si fichier existe deja
 			{
 				sprintf(command, "echo %lf %lf > results/res_%d_%d.txt", initialDatas[j].pos[0],initialDatas[j].pos[1], myrank, j);	
-				//~ printf("Commande: %s\n", command);
 				system(command);
 			}
-			else
+			else//concatenation des donnees
 			{
 				sprintf(command, "echo %lf %lf >> results/res_%d_%d.txt", initialDatas[j].pos[0],initialDatas[j].pos[1], myrank, j);	
-				//~ printf("Commande: %s\n", command);
 				system(command);	
 			}
 		}
     }
-    //~ printf("Fin programme\n");
+    
+    //liberation des allocations MPI
     MPI_Request_free(&(sendRequest[0]));
     MPI_Request_free(&(sendRequest[1]));
     MPI_Request_free(&(recvRequest[0]));
     MPI_Request_free(&(recvRequest[1]));
+    
     MPI_Type_free(&object);
+    
+    //liberation des allocations dynamiques
     free(buffer0);
     free(buffer1);
     free(initialDatas);
