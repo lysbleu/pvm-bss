@@ -85,8 +85,8 @@ int main( int argc, char **argv ) {
 	//faire un tour d'algo
 	for(int i = 0; i<size; i++)
 	{
-		MPI_SendRecv(initialDatas, maxElem, object, (myrank + 1) % size, 2,
-                buffer0, recvcount,  object, (myrank + size - 1) % size, MPI_ANY_TAG,
+		MPI_Sendrecv(initialDatas, maxElem, object, (myrank + 1) % size, 2,
+                buffer0, maxElem,  object, (myrank + size - 1) % size, MPI_ANY_TAG,
                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                	//TODO
                	//dist_min[i]=min(dist recues)
@@ -133,7 +133,7 @@ int main( int argc, char **argv ) {
 		//ecriture du resultat
 		for (int j=0; j<elementsNumber; j++)
 		{
-			if(j==0)//ecrasement si fichier existe deja
+			if(k==0)//ecrasement si fichier existe deja
 			{
 				sprintf(command, "echo %lf %lf > results/res_%d_%d.txt", initialDatas[j].pos[0],initialDatas[j].pos[1], myrank, j);	
 				system(command);
