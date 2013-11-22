@@ -45,7 +45,7 @@ int main( int argc, char **argv ) {
     int blockLength = 3;
     MPI_Datatype object;
     MPI_Aint stride = sizeof(Atome)/sizeof(double);
-    MPI_Type_vector(3, blockLength, stride, MPI_DOUBLE, &object);
+    MPI_Type_vector(1, blockLength, stride, MPI_DOUBLE, &object);
     MPI_Type_commit(&object); 
     
     MPI_Request sendRequest[2];
@@ -93,7 +93,9 @@ int main( int argc, char **argv ) {
 			//~ printf("Proc:%d Status:%d\n", myrank, status);
 			//MPI_Wait(&(sendRequest[i%2]),MPI_STATUS_IGNORE);
 		}
-		  //TODO calcul de fin
+		//calcul du dt, ...
+		  //TODO calcul de fin de tour
+		  
 		//ecriture du resultat
 		for (int j=0; j<elementsNumber; j++)
 		{

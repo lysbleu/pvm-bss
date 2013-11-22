@@ -8,7 +8,7 @@ OBJ= $(SRC:.c=.o)
 all: $(EXEC)
 
 interaction: $(OBJ)
-	$(CC) -o $@ $^ $(LDFLAGS)
+	$(CC) -o $@ atom.h $^ $(LDFLAGS)
 
 %.o: %.c
 	$(CC) -o $@ -c $< $(CFLAGS)
