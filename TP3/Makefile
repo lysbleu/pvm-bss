@@ -8,17 +8,21 @@ OBJ= $(SRC:.c=.o)
 all: $(EXEC)
 
 interaction: $(OBJ)
-	$(CC) -o $@ $^ $(LDFLAGS)
+	$(CC) -o $@ atom.h $^ $(LDFLAGS)
 
 %.o: %.c
 	$(CC) -o $@ -c $< $(CFLAGS)
 
 plot:
 
+launch:
+	mpiexec -np 4 interaction data/data_test.txt 10 1
+
 .PHONY: clean mrproper
 
 clean:
 	rm -rf *.o
+	rm -rf results/res*
 
 mrproper: clean
 	rm -rf $(EXEC)

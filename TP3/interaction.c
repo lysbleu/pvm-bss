@@ -7,6 +7,7 @@
 #include <string.h>
 #include "atom.h"
 #include "parser.h"
+#include <unistd.h>
 
 void copyAtome(Atome *dest, Atome *src)
 {
@@ -31,6 +32,7 @@ int main( int argc, char **argv ) {
     
     int nb_iter = atoi(argv[2]);
     int mode = atoi(argv[3]);
+    double dt = 0;
     char *filename = calloc(strlen(argv[1])+1, sizeof(char));
     strcpy(filename, argv[1]);
 
@@ -40,40 +42,42 @@ int main( int argc, char **argv ) {
     MPI_Comm_size( MPI_COMM_WORLD, &size);
     MPI_Comm_rank( MPI_COMM_WORLD, &myrank ); 
 	
-	int elementsNumber = parse(filename, &initialDatas, myrank, size, &maxElem);
+	//parsing du fichier de configuration
+	/*
+	 * format : 50 caracteres par ligne, flottants en ecriture scientifique
+	 * flottant : 1.1111E10 (9 caracteres)
+	 * ordre : masse pos1 pos2 vit1 vit2\n
+	 */	
+    int elementsNumber = parse(filename, &initialDatas, myrank, size, &maxElem);
 
-    MPI_Comm_size( MPI_COMM_WORLD, &size); //cas ou plus de procs que de lignes dans le fichier
-	
-	Atome *buffer0 = calloc(maxElem, sizeof(Atome));
+    Atome *buffer0 = calloc(maxElem, sizeof(Atome));
     Atome *buffer1 = calloc(maxElem, sizeof(Atome));
 	
-    int blockLength = 3;
-    MPI_Datatype object;
-    MPI_Aint stride = sizeof(Atome);
-    MPI_Type_vector(3, blockLength, stride, MPI_DOUBLE, &object);
+    int blockLength = 3; //nb de donnees a envoyer
+    
+    //type MPI pour Atome, en n envoyant seulement m, pos1, pos2
+    MPI_Datatype object; 
+    MPI_Aint stride = sizeof(Atome)/sizeof(double);
+    MPI_Type_vector(1, blockLength, stride, MPI_DOUBLE, &object);
     MPI_Type_commit(&object); 
     
-    //~ MPI_Request oddSend;
     MPI_Request sendRequest[2];
     MPI_Request recvRequest[2];
-    //~ MPI_Request oddReceive;
-    //~ MPI_Request evenSend;
-    //~ MPI_Request evenReceive;
-    
+
+	//initialisation des communications persistantes
     MPI_Send_init(buffer0, maxElem, object, (myrank + 1) % size, 2,
-				MPI_COMM_WORLD, &(sendRequest[0]));
-				//~ MPI_COMM_WORLD, &evenSend);
+				 MPI_COMM_WORLD, &(sendRequest[0]));
+				
     MPI_Send_init(buffer1, maxElem, object, (myrank + 1) % size, 1,
 				MPI_COMM_WORLD, &(sendRequest[1]));
-				//~ MPI_COMM_WORLD, &oddSend);
-    MPI_Recv_init(buffer1, maxElem, object, (myrank + 1) % size, 2,
-				MPI_COMM_WORLD, &(recvRequest[0]));
-				//~ MPI_COMM_WORLD, &evenReceive);
-    MPI_Recv_init(buffer0, maxElem, object, (myrank + 1) % size, 1,
-				MPI_COMM_WORLD, &(recvRequest[1]));
-				//~ MPI_COMM_WORLD, &oddReceive);
+				 
+    MPI_Recv_init(buffer1, maxElem, object, (myrank + size -1) % size, 2,
+				 MPI_COMM_WORLD, &(recvRequest[0]));
+				 
+    MPI_Recv_init(buffer0, maxElem, object, (myrank + size -1) % size, 1,
+				 MPI_COMM_WORLD, &(recvRequest[1]));
     
-    char command[100];
+    char command[200];
 
     //initialisation du buffer local
 	for (int i = 0; i <maxElem; i++)
@@ -81,37 +85,85 @@ int main( int argc, char **argv ) {
 		copyAtome(&(buffer0[i]), &(initialDatas[i]));
 	}
 	
-    for(int i = 0; i<=nb_iter; i++)
-    {
-		MPI_Start(&(sendRequest[i%2]));
-		MPI_Start(&(recvRequest[i%2]));
-		//TODO calcul
-        MPI_Wait(&(recvRequest[i%2]),MPI_STATUS_IGNORE);
+	//initialisation du tableau des distances min
+	//faire un tour d'algo
+	for(int i = 0; i<size; i++)
+	{
+		MPI_Sendrecv(initialDatas, maxElem, object, (myrank + 1) % size, 2,
+                buffer0, maxElem,  object, (myrank + size - 1) % size, MPI_ANY_TAG,
+                MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+               	//TODO
+               	//dist_min[i]=min(dist recues)
+	}
+	
+	
+	//boucle principale (nb_iter == nb de points par courbe)
+	for (int k = 0; k<nb_iter; k++)
+	{
+		//calcul du dt local pour chacun des points, on garde le min
+			//TODO 
+			//
+			//dt_min
+		  
+		//calcul du dt global avec un MPI_Allreduce
+		MPI_Allreduce(MPI_IN_PLACE, &dt, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
 		
-  /*      MPI_Start(&evenSend);
-        MPI_Start(&evenReceive);
-		//TODO calcul
-        MPI_Wait(&evenReceive,MPI_STATUS_IGNORE);
-        * 
-        MPI_Start(&oddSend);
-        MPI_Start(&oddReceive);
-        // TODO calcul
-        MPI_Wait(&oddReceive,MPI_STATUS_IGNORE);
-  */      
-	//ecriture du resultat
-	for (int j=0; j<elementsNumber; j++)
+		//pour chaque processus
+		for(int i = 0; i<size; i++)
 		{
-			sprintf(command, "echo %lf %lf >> results/res_%d_%d.txt", initialDatas[i].pos[0],initialDatas[i].pos[1], myrank, j);	
-			system(command);
+			//debut des communications non bloquantes
+			MPI_Start(&(sendRequest[i%2]));
+			MPI_Start(&(recvRequest[i%2]));
+			
+			//calcul des forces et influence sur les positions 
+			for (int l=0; l<maxElem; l++)
+			{
+				if(i!=0)//cas general
+				{
+					//TODO calcul
+				}
+				else//cas particulier, ne pas prendre en compte l influence sur soi meme
+				{
+					//TODO calcul
+				}
+					
+				//MAJ du tab des distances min
+				//TODO
+			}
+			//attente de la reception des donnees avant l etape suivante
+			MPI_Wait(&(recvRequest[i%2]),MPI_STATUS_IGNORE);
+		}
+		
+		//ecriture du resultat
+		for (int j=0; j<elementsNumber; j++)
+		{
+			if(k==0)//ecrasement si fichier existe deja
+			{
+				sprintf(command, "echo %lf %lf > results/res_%d_%d.txt", initialDatas[j].pos[0],initialDatas[j].pos[1], myrank, j);	
+				system(command);
+			}
+			else//concatenation des donnees
+			{
+				sprintf(command, "echo %lf %lf >> results/res_%d_%d.txt", initialDatas[j].pos[0],initialDatas[j].pos[1], myrank, j);	
+				system(command);	
+			}
 		}
     }
     
-    MPI_Finalize();
+    //liberation des allocations MPI
+    MPI_Request_free(&(sendRequest[0]));
+    MPI_Request_free(&(sendRequest[1]));
+    MPI_Request_free(&(recvRequest[0]));
+    MPI_Request_free(&(recvRequest[1]));
+    
+    MPI_Type_free(&object);
+    
+    //liberation des allocations dynamiques
     free(buffer0);
     free(buffer1);
-    //~ free(massesBuffer);
     free(initialDatas);
 
+    MPI_Finalize();
     return EXIT_SUCCESS;
 } 
 
