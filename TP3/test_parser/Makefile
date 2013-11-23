@@ -1,14 +1,14 @@
 CC=mpicc
-CFLAGS=-W -Wall -Wextra -std=c99 -g
+CFLAGS=-W -Wall -Wextra
 LDFLAGS=-lm
-EXEC=interaction
-SRC= $(wildcard *.c)
+EXEC=test_parse
+SRC= test_parse.c
 OBJ= $(SRC:.c=.o)
 
 all: $(EXEC)
 
-interaction: $(OBJ)
-	$(CC) -o $@ $^ $(LDFLAGS)
+test_parse: $(OBJ)
+	$(CC) -o $@ $^ ../atom.o ../parser.o $(LDFLAGS)
 
 %.o: %.c
 	$(CC) -o $@ -c $< $(CFLAGS)
