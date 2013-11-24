@@ -125,7 +125,8 @@ int main( int argc, char **argv ) {
 				}
 			}
 		}
-		  
+		dt = dt_min;
+		
 		//calcul du dt global avec un MPI_Allreduce
 		MPI_Allreduce(MPI_IN_PLACE, &dt, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
 		
@@ -146,7 +147,7 @@ int main( int argc, char **argv ) {
 			MPI_Start(&(recvRequest[i%2]));
 			
 			//calcul des forces et influence sur les positions 
-			for (int l=0; l<maxElem; l++)
+			for(int l=0; l<maxElem; l++)
 			{
 				if(i!=0)//cas general
 				{
@@ -194,13 +195,36 @@ int main( int argc, char **argv ) {
 				}
 					
 				//MAJ du tab des distances min
-				//TODO
+				// placement initial
+	
 			}
 			//attente de la reception des donnees avant l etape suivante
 			MPI_Wait(&(recvRequest[i%2]),MPI_STATUS_IGNORE);
 		}
 		
-		//ecriture du resultat
+		
+		//MAJ du tab des distances min
+		// placement corigé
+		for(int i = 0; i<size; i++)
+		{
+			MPI_Sendrecv(initialDatas, maxElem, object, (myrank + 1) % size, 2,
+					inputDatas, maxElem,  object, (myrank + size - 1) % size, MPI_ANY_TAG,
+					MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			for(int j = 0; j<maxElem; j++)
+			{
+				for(int k = 0; k <maxElem; k++)
+				{
+					//dist_min[i]=min(dist recues)
+					double_tmp = distance(buffer0[j], initialDatas[k]);
+					if(dist_min[i] > double_tmp)
+					{
+						dist_min[i]= double_tmp;
+					}
+				}
+			}
+		}
+		
+		// ecriture du resultat
 		for (int j=0; j<elementsNumber; j++)
 		{
 			if(k==0)//ecrasement si fichier existe deja
