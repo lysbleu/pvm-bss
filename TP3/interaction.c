@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mpi.h>
-<<<<<<< HEAD
 #include "atom.h"
-=======
 #include <string.h>
 #include "atom.h"
 #include "parser.h"
@@ -19,7 +17,6 @@ void copyAtome(Atome *dest, Atome *src)
 		dest->acc[0] = src->acc[0];
 		dest->acc[1] = src->acc[1];
 }
->>>>>>> 8f7a38f2daea1e28de746239ac9b9cb237eb1fe3
 
 int main( int argc, char **argv ) {
     if(argc != 4)
@@ -39,6 +36,8 @@ int main( int argc, char **argv ) {
     Atome *initialDatas;
 
     int myrank, size, maxElem;
+    double double_tmp, dt_min;
+    double *double_tmp_ptr = NULL;
     MPI_Comm_size( MPI_COMM_WORLD, &size);
     MPI_Comm_rank( MPI_COMM_WORLD, &myrank ); 
 	
@@ -52,6 +51,8 @@ int main( int argc, char **argv ) {
 
     Atome *buffer0 = calloc(maxElem, sizeof(Atome));
     Atome *buffer1 = calloc(maxElem, sizeof(Atome));
+    Atome *inputDatas = NULL;  //variable qui pointera vers le buffer des données en cours de traitement.
+	double *dist_min = calloc(size, sizeof(double));
 	
     int blockLength = 3; //nb de donnees a envoyer
     
@@ -92,21 +93,50 @@ int main( int argc, char **argv ) {
 		MPI_Sendrecv(initialDatas, maxElem, object, (myrank + 1) % size, 2,
                 buffer0, maxElem,  object, (myrank + size - 1) % size, MPI_ANY_TAG,
                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-               	//TODO
-               	//dist_min[i]=min(dist recues)
+		for(int j = 0; j<maxElem; j++)
+		{
+			for(int k = 0; k <maxElem; k++)
+			{
+				//dist_min[i]=min(dist recues)
+				double_tmp = distance(buffer0[j], initialDatas[k]);
+				if(dist_min[i] > double_tmp)
+				{
+					dist_min[i]= double_tmp;
+				}
+			}
+		}
 	}
 	
+	double_tmp_ptr = calloc(2, sizeof(double));
 	
 	//boucle principale (nb_iter == nb de points par courbe)
 	for (int k = 0; k<nb_iter; k++)
 	{
 		//calcul du dt local pour chacun des points, on garde le min
-			//TODO 
-			//
-			//dt_min
+		double_tmp = 0;
+		for(int m = 0; m < maxElem; m++)
+		{
+			for(int n = 0; n < size; n++)
+			{
+				double_tmp = calc_dt(initialDatas[m], dist_min[n]);
+				if(dt_min > double_tmp)
+				{
+					dt_min = double_tmp;
+				}
+			}
+		}
 		  
 		//calcul du dt global avec un MPI_Allreduce
 		MPI_Allreduce(MPI_IN_PLACE, &dt, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+		
+		if((k%2) == 0)
+		{
+			inputDatas = &buffer0[0];
+		}
+		else
+		{
+			inputDatas = &buffer1[0];
+		}
 		
 		//pour chaque processus
 		for(int i = 0; i<size; i++)
@@ -120,11 +150,47 @@ int main( int argc, char **argv ) {
 			{
 				if(i!=0)//cas general
 				{
-					//TODO calcul
+					for(int m = 0; m < maxElem; m++)
+					{
+						for(int n = 0; n < maxElem; n++)
+						{
+							// attention, chacune des fonctions
+							// suivantes ne calcule que l'influence
+							// de l'atome courrant
+							double_tmp = force_inter(initialDatas[m], inputDatas[n]);
+							
+							double_tmp_ptr[0] = double_tmp * cos(distance(initialDatas[m], inputDatas[n]));
+							double_tmp_ptr[1] = double_tmp * sin(distance(initialDatas[m], inputDatas[n]));
+							
+							acceleration(&initialDatas[m], double_tmp_ptr);
+							vitesse(&initialDatas[m], dt);
+							new_pos(&initialDatas[m], dt);
+						}
+					}
 				}
+				
 				else//cas particulier, ne pas prendre en compte l influence sur soi meme
 				{
-					//TODO calcul
+					for(int m = 0; m < maxElem; m++)
+					{
+						for(int n = 0; n < maxElem; n++)
+						{
+							if(m != n)
+							{
+								// attention, chacune des fonctions
+								// suivantes ne calcule que l'influence 
+								// de l'atome courrant
+								double_tmp = force_inter(initialDatas[m], inputDatas[n]);
+							
+								double_tmp_ptr[0] = double_tmp * cos(distance(initialDatas[m], inputDatas[n]));
+								double_tmp_ptr[1] = double_tmp * sin(distance(initialDatas[m], inputDatas[n]));
+							
+								acceleration(&initialDatas[m], double_tmp_ptr);
+								vitesse(&initialDatas[m], dt);
+								new_pos(&initialDatas[m], dt);
+							}
+						}
+					}
 				}
 					
 				//MAJ du tab des distances min
@@ -162,6 +228,8 @@ int main( int argc, char **argv ) {
     free(buffer0);
     free(buffer1);
     free(initialDatas);
+    free(dist_min);
+    free(double_tmp_ptr);
 
     MPI_Finalize();
     return EXIT_SUCCESS;
