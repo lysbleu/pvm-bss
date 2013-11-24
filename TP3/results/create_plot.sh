@@ -1,3 +1,4 @@
+#!/usr/bin/bash
 command -v sponge >/dev/null 2>&1 || { echo >&2 "Il faut installer moreutils" ; exit 1; }
 command -v gnuplot >/dev/null 2>&1 || { echo >&2 "Il faut installer gnuplot"; exit 1; }
 echo "# Fichier temporaire pour gnuplot" > plot
