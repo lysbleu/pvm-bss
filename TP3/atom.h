@@ -1,6 +1,7 @@
 #ifndef ATOM_H
 #define ATOM_H
 #include <math.h>
+#include <stdio.h>
 
 #define G 6.67384E-11  //m3 kg-1 s-2
 
@@ -16,7 +17,7 @@ static inline double distance(Atome A, Atome B)
 	return sqrt(pow(A.pos[0] - B.pos[0], 2) + pow(A.pos[1] - B.pos[1], 2));
 }
 
-static inline double force_inter(Atome A, Atome B)  // calcule la force d'interraction entre 2 masses
+static inline double force_inter(Atome A, Atome B)  // calcule la force d'interaction entre 2 masses
 {
 	double F;
 	F = A.m * B.m;
@@ -55,6 +56,7 @@ static inline double norme_carre(double vect[2])
 
 static inline double calc_dt(Atome A, double dist)
 {
+	printf("acc 0:%lf, acc 1:%lf, vot 0:%lf, vit 1:%lf pos0:%lf, pos1:%lf, masse:%lf\n", A.acc[0],A.acc[1], A.vit[0],A.vit[1],A.pos[0],A.pos[1], A.m);
 	return ((sqrt(norme_carre(A.vit) + 0.2 * norme(A.acc) * dist) - norme(A.vit))/norme(A.acc));
 	
 }
