@@ -33,8 +33,8 @@ static inline void vitesse(Atome * A, double dt) // calcule la vitesse de A
 
 static inline void acceleration(Atome * A, double F[2])  //calcule l'acceleration de A
 {
-	A->acc[0] = F[0] / A->m;
-	A->acc[1] = F[1] / A->m;
+	A->acc[0] += F[0] / A->m;
+	A->acc[1] += F[1] / A->m;
 }
 
 static inline void new_pos(Atome * A, double dt) // calcule la nouvelle position de A

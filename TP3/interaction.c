@@ -29,7 +29,7 @@ int main( int argc, char **argv ) {
     
     int nb_iter = atoi(argv[2]);
     int mode = atoi(argv[3]);
-    double dt = 0;
+    double dt = -1;
     char *filename = calloc(strlen(argv[1])+1, sizeof(char));
     strcpy(filename, argv[1]);
 
@@ -52,7 +52,7 @@ int main( int argc, char **argv ) {
     Atome *buffer0 = calloc(maxElem, sizeof(Atome));
     Atome *buffer1 = calloc(maxElem, sizeof(Atome));
     Atome *inputDatas = NULL;  //variable qui pointera vers le buffer des données en cours de traitement.
-	double *dist_min = calloc(size, sizeof(double));
+	double *dist_min = calloc(maxElem, sizeof(double));
 	
     int blockLength = 3; //nb de donnees a envoyer
     
@@ -90,18 +90,21 @@ int main( int argc, char **argv ) {
 	//faire un tour d'algo
 	for(int i = 0; i<size; i++)
 	{
-		MPI_Sendrecv(initialDatas, maxElem, object, (myrank + 1) % size, 2,
+		MPI_Sendrecv(buffer0, maxElem, object, (myrank + 1) % size, 2,
                 buffer0, maxElem,  object, (myrank + size - 1) % size, MPI_ANY_TAG,
                 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		for(int j = 0; j<maxElem; j++)
 		{
 			for(int k = 0; k <maxElem; k++)
 			{
-				//dist_min[i]=min(dist recues)
-				double_tmp = distance(buffer0[j], initialDatas[k]);
-				if(dist_min[i] > double_tmp)
+				if(!(i == (size-1) && (j==k)))
 				{
-					dist_min[i]= double_tmp;
+					//dist_min[i]=min(dist recues)
+					double_tmp = distance(buffer0[j], initialDatas[k]);
+					if(dist_min[j] > double_tmp)
+					{
+						dist_min[j]= double_tmp;
+					}
 				}
 			}
 		}
@@ -114,15 +117,12 @@ int main( int argc, char **argv ) {
 	{
 		//calcul du dt local pour chacun des points, on garde le min
 		double_tmp = 0;
-		for(int m = 0; m < maxElem; m++)
+		for(int n = 0; n < maxElem; n++)
 		{
-			for(int n = 0; n < size; n++)
+			double_tmp = calc_dt(initialDatas[n], dist_min[n]);
+			if(dt > double_tmp || dt < 0)
 			{
-				double_tmp = calc_dt(initialDatas[m], dist_min[n]);
-				if(dt_min > double_tmp)
-				{
-					dt_min = double_tmp;
-				}
+				dt = double_tmp;
 			}
 		}
 		  
@@ -146,56 +146,65 @@ int main( int argc, char **argv ) {
 			MPI_Start(&(recvRequest[i%2]));
 			
 			//calcul des forces et influence sur les positions 
-			for (int l=0; l<maxElem; l++)
+
+			if(i!=0)//cas general
 			{
-				if(i!=0)//cas general
+				for(int m = 0; m < maxElem; m++)
 				{
-					for(int m = 0; m < maxElem; m++)
+					initialDatas[m].vit[0]=0;
+					initialDatas[m].vit[1]=0;
+					initialDatas[m].acc[0]=0;
+					initialDatas[m].acc[1]=0;
+					for(int n = 0; n < maxElem; n++)
 					{
-						for(int n = 0; n < maxElem; n++)
+						// attention, chacune des fonctions
+						// suivantes ne calcule que l'influence
+						// de l'atome courant
+						double_tmp = force_inter(initialDatas[m], inputDatas[n]);
+						
+						double_tmp_ptr[0] = double_tmp * cos(distance(initialDatas[m], inputDatas[n]));
+						double_tmp_ptr[1] = double_tmp * sin(distance(initialDatas[m], inputDatas[n]));
+						
+						acceleration(&initialDatas[m], double_tmp_ptr);
+						vitesse(&initialDatas[m], dt);
+					}
+					new_pos(&initialDatas[m], dt);
+				}
+			}
+			
+			else//cas particulier, ne pas prendre en compte l influence sur soi meme
+			{
+				for(int m = 0; m < maxElem; m++)
+				{
+					initialDatas[m].vit[0]=0;
+					initialDatas[m].vit[1]=0;
+					initialDatas[m].acc[0]=0;
+					initialDatas[m].acc[1]=0;
+					
+					for(int n = 0; n < maxElem; n++)
+					{
+						if(m != n)
 						{
 							// attention, chacune des fonctions
-							// suivantes ne calcule que l'influence
+							// suivantes ne calcule que l'influence 
 							// de l'atome courrant
 							double_tmp = force_inter(initialDatas[m], inputDatas[n]);
-							
+						
 							double_tmp_ptr[0] = double_tmp * cos(distance(initialDatas[m], inputDatas[n]));
 							double_tmp_ptr[1] = double_tmp * sin(distance(initialDatas[m], inputDatas[n]));
-							
+						
 							acceleration(&initialDatas[m], double_tmp_ptr);
 							vitesse(&initialDatas[m], dt);
-							new_pos(&initialDatas[m], dt);
+							//~ new_pos(&initialDatas[m], dt);
 						}
 					}
+					new_pos(&initialDatas[m], dt);
 				}
-				
-				else//cas particulier, ne pas prendre en compte l influence sur soi meme
-				{
-					for(int m = 0; m < maxElem; m++)
-					{
-						for(int n = 0; n < maxElem; n++)
-						{
-							if(m != n)
-							{
-								// attention, chacune des fonctions
-								// suivantes ne calcule que l'influence 
-								// de l'atome courrant
-								double_tmp = force_inter(initialDatas[m], inputDatas[n]);
-							
-								double_tmp_ptr[0] = double_tmp * cos(distance(initialDatas[m], inputDatas[n]));
-								double_tmp_ptr[1] = double_tmp * sin(distance(initialDatas[m], inputDatas[n]));
-							
-								acceleration(&initialDatas[m], double_tmp_ptr);
-								vitesse(&initialDatas[m], dt);
-								new_pos(&initialDatas[m], dt);
-							}
-						}
-					}
-				}
-					
-				//MAJ du tab des distances min
-				//TODO
 			}
+					
+			//MAJ du tab des distances min
+			//TODO
+			
 			//attente de la reception des donnees avant l etape suivante
 			MPI_Wait(&(recvRequest[i%2]),MPI_STATUS_IGNORE);
 		}
