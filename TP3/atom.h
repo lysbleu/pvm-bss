@@ -23,6 +23,8 @@ static inline double force_inter(Atome A, Atome B)  // calcule la force d'intera
 	F = A.m * B.m;
 	F /= (pow(A.pos[0] - B.pos[0], 2) + pow(A.pos[1] - B.pos[1], 2));
 	F *= G;
+	//~ printf("A.m :%lf, A.pos[0]:%lf,  A.pos[1]:%lf, B.m :%lf, B.pos[0]:%lf,  B.pos[1]:%lf\n", A.m, A.pos[0],A.pos[1], B.m,  B.pos[0], B.pos[1]); 
+	//~ printf("F:%lf\n", F);
 	return F;
 }
 
@@ -56,7 +58,8 @@ static inline double norme_carre(double vect[2])
 
 static inline double calc_dt(Atome A, double dist)
 {
-	printf("acc 0:%lf, acc 1:%lf, vot 0:%lf, vit 1:%lf pos0:%lf, pos1:%lf, masse:%lf\n", A.acc[0],A.acc[1], A.vit[0],A.vit[1],A.pos[0],A.pos[1], A.m);
+	printf("acc0: %lf, acc1: %lf, vot0: %lf, vit1: %lf pos0: %lf, pos1: %lf, masse: %lf\n", A.acc[0],A.acc[1], A.vit[0],A.vit[1],A.pos[0],A.pos[1], A.m);
+	printf("norme_carre(A.vit): %le\nnorme(A.acc): %le\ndist: %le\nnorme(A.vit):%le\nnorme(A.acc): %le\n\n", norme_carre(A.vit), norme(A.acc), dist, norme(A.vit), norme(A.acc));
 	return ((sqrt(norme_carre(A.vit) + 0.2 * norme(A.acc) * dist) - norme(A.vit))/norme(A.acc));
 	
 }
