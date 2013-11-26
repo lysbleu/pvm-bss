@@ -104,6 +104,34 @@ int main( int argc, char **argv ) {
             initialDatas[z].acc[0]=0;
             initialDatas[z].acc[1]=0;	
         }
+
+	//boucle principale (nb_iter == nb de points par courbe)
+	for (int k = 0; k<=nb_iter; k++)
+	{
+		//calcul du dt local pour chacun des points, on garde le min
+		double_tmp = 0;
+		dt=-1;
+
+		for(int n = 0; n < maxElem; n++)
+		{
+			double_tmp = calc_dt(initialDatas[n], dist_min[n]);
+			if(dt > double_tmp || dt < 0)
+			{
+				dt = double_tmp;
+			}
+		}
+		//calcul du dt global avec un MPI_Allreduce
+		//~ printf("\navant allreduce: %d, dt:%lf\n", myrank, dt);
+		MPI_Allreduce(MPI_IN_PLACE, &dt, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+		//~ printf("boucle proc: %d, dt:%lf\n", myrank, dt);
+		for(int z = 0; z<maxElem; z++)
+		{
+			//~ initialDatas[z].vit[0]=0;
+			//~ initialDatas[z].vit[1]=0;
+			initialDatas[z].acc[0]=0;
+			initialDatas[z].acc[1]=0;	
+		}
+
 		
 
         inputDatas = (k%2) == 0 ? &(buffer0[0]) : &(buffer1[0]); 
