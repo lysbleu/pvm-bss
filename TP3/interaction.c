@@ -100,6 +100,8 @@ int main( int argc, char **argv ) {
 	{
 		//calcul du dt local pour chacun des points, on garde le min
 		double_tmp = 0;
+		dt=-1;
+
 		for(int n = 0; n < maxElem; n++)
 		{
 			double_tmp = calc_dt(initialDatas[n], dist_min[n]);
@@ -109,13 +111,13 @@ int main( int argc, char **argv ) {
 			}
 		}
 		//calcul du dt global avec un MPI_Allreduce
-		printf("\navant allreduce: %d, dt:%lf\n", myrank, dt);
+		//~ printf("\navant allreduce: %d, dt:%lf\n", myrank, dt);
 		MPI_Allreduce(MPI_IN_PLACE, &dt, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-		printf("boucle proc: %d, dt:%lf\n", myrank, dt);
+		//~ printf("boucle proc: %d, dt:%lf\n", myrank, dt);
 		for(int z = 0; z<maxElem; z++)
 		{
-			initialDatas[z].vit[0]=0;
-			initialDatas[z].vit[1]=0;
+			//~ initialDatas[z].vit[0]=0;
+			//~ initialDatas[z].vit[1]=0;
 			initialDatas[z].acc[0]=0;
 			initialDatas[z].acc[1]=0;	
 		}
@@ -217,8 +219,8 @@ int main( int argc, char **argv ) {
 		}
 				
 		// ecriture du resultat
-		if(k!=0)
-		{
+		//~ if(k!=0)
+		//~ {
 			for (int j=0; j<elementsNumber; j++)
 			{
 				if(k==0)//ecrasement si fichier existe deja
@@ -232,7 +234,7 @@ int main( int argc, char **argv ) {
 					system(command);	
 				}
 			}
-		}
+		//~ } 
     }
     
     //liberation des allocations MPI
