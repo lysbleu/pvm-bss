@@ -2,7 +2,7 @@ CC=mpicc
 CFLAGS=-W -Wall -Wextra -std=c99 -g
 LDFLAGS=-lm
 EXEC=interaction
-SRC= $(wildcard *.c)
+SRC= interaction.c parser.c
 OBJ= $(SRC:.c=.o)
 
 all: $(EXEC)
