@@ -161,7 +161,7 @@ int main( int argc, char **argv ) {
 							
                             // attention, chacune des fonctions
                             // suivantes ne calcule que l'influence 
-                            // de l'atome courrant
+                            // de l'atome actuel
                             double_tmp = force_inter(initialDatas[m], inputDatas[n]);
 						
                             double_tmp_ptr[0] = double_tmp * cos(distance(initialDatas[m], inputDatas[n]));
@@ -193,6 +193,7 @@ int main( int argc, char **argv ) {
             {
                 new_pos(&(initialDatas[z]), dt);	
             }
+            memcpy(buffer0, initialDatas, maxElem * sizeof(Atome));
         }
 				
         // ecriture du resultat
