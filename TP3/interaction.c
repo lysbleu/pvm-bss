@@ -84,35 +84,6 @@ int main( int argc, char **argv ) {
 
     double_tmp_ptr = calloc(2, sizeof(double));
 	
-    //boucle principale (nb_iter == nb de points par courbe)
-    for (int k = 0; k<=nb_iter; k++)
-    {
-		printf("\nDebut proc: %d, iter:%d, avant allreduce\n", myrank,k);
-
-        //calcul du dt local pour chacun des points, on garde le min
-        double_tmp = 0;
-        for(int n = 0; n < maxElem; n++)
-        {
-            double_tmp = calc_dt(initialDatas[n], dist_min[n]);
-            if(dt > double_tmp || dt < 0)
-            {
-                dt = double_tmp;
-            }
-        }
-        //calcul du dt global avec un MPI_Allreduce
-        //~ sleep(5*myrank);
-        //~ printf("\nproc: %d, iter:%d, avant allreduce dt:%le\n", myrank,k, dt);
-        MPI_Allreduce(MPI_IN_PLACE, &dt, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-        //~ printf("proc: %d, iter:%d, apres allreduce dt:%le\n\n", myrank,k, dt);
-        //~ printf("proc: %d, iter:%d, apres allreduce dt:%le\n\n", myrank,k, dt);
-        for(int z = 0; z<maxElem; z++)
-        {
-            initialDatas[z].vit[0]=0;
-            initialDatas[z].vit[1]=0;
-            initialDatas[z].acc[0]=0;
-            initialDatas[z].acc[1]=0;	
-        }
-
 	//boucle principale (nb_iter == nb de points par courbe)
 	for (int k = 0; k<=nb_iter; k++)
 	{
@@ -221,7 +192,7 @@ int main( int argc, char **argv ) {
 			
             //attente de la reception des donnees avant l etape suivante
             MPI_Wait(&(recvRequest[i%2]),MPI_STATUS_IGNORE);
-            sleep(myrank*5);
+            sleep(myrank*2);
 			printf("Proc %d\n", myrank);
 				if(i%2 == 0)
 				{
@@ -268,7 +239,6 @@ int main( int argc, char **argv ) {
             }
         }
 	}
-    }
     
     //liberation des allocations MPI
     MPI_Request_free(&(sendRequest[0]));
