@@ -59,6 +59,7 @@ static inline double norme_carre(double vect[2])
 static inline double calc_dt(Atome A, double dist)
 {
 	//~ printf("norme_carre(A.vit): %le\nnorme(A.acc): %le\ndist: %le\nnorme(A.vit):%le\nnorme(A.acc): %le\nresult:%lf\n\n", norme_carre(A.vit), norme(A.acc), dist, norme(A.vit), norme(A.acc), (sqrt(norme_carre(A.vit) + 0.2 * norme(A.acc) * dist) - norme(A.vit))/norme(A.acc));
+	//~ printf("A.acc: (%le, %le)\nA.vit:(%le, %le)\ndist: %le\n\n", A.acc[0], A.acc[1], A.vit[0], A.vit[1], dist );
 	return ((sqrt(norme_carre(A.vit) + 0.2 * norme(A.acc) * dist) - norme(A.vit))/norme(A.acc));
 	
 }

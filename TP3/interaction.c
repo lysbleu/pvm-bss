@@ -7,6 +7,10 @@
 #include "atom.h"
 #include "parser.h"
 
+void affiche(Atome a)
+{
+	printf("Atome m:%le, pos:(%le, %le), vit:(%le, %le), acc:(%le, %le)\n", a.m, a.pos[0], a.pos[1], a.vit[0], a.vit[1], a.acc[0], a.acc[1]);	
+}
 
 int main( int argc, char **argv ) {
     if(argc != 3)
@@ -83,6 +87,8 @@ int main( int argc, char **argv ) {
     //boucle principale (nb_iter == nb de points par courbe)
     for (int k = 0; k<=nb_iter; k++)
     {
+		printf("\nDebut proc: %d, iter:%d, avant allreduce\n", myrank,k);
+
         //calcul du dt local pour chacun des points, on garde le min
         double_tmp = 0;
         for(int n = 0; n < maxElem; n++)
@@ -94,9 +100,11 @@ int main( int argc, char **argv ) {
             }
         }
         //calcul du dt global avec un MPI_Allreduce
-        printf("\navant allreduce: %d, dt:%lf\n", myrank, dt);
+        //~ sleep(5*myrank);
+        //~ printf("\nproc: %d, iter:%d, avant allreduce dt:%le\n", myrank,k, dt);
         MPI_Allreduce(MPI_IN_PLACE, &dt, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-        printf("boucle proc: %d, dt:%lf\n", myrank, dt);
+        //~ printf("proc: %d, iter:%d, apres allreduce dt:%le\n\n", myrank,k, dt);
+        //~ printf("proc: %d, iter:%d, apres allreduce dt:%le\n\n", myrank,k, dt);
         for(int z = 0; z<maxElem; z++)
         {
             initialDatas[z].vit[0]=0;
@@ -213,6 +221,24 @@ int main( int argc, char **argv ) {
 			
             //attente de la reception des donnees avant l etape suivante
             MPI_Wait(&(recvRequest[i%2]),MPI_STATUS_IGNORE);
+            sleep(myrank*5);
+			printf("Proc %d\n", myrank);
+				if(i%2 == 0)
+				{
+					for(int o=0; o<maxElem;o++)
+					{
+						affiche(buffer1[o]);
+					}
+					printf("\n");
+				}
+				else
+				{
+					for(int o=0; o<maxElem;o++)
+					{
+						affiche(buffer0[o]);
+					}
+					printf("\n");
+				}
 			
         }
         if(k!=0)
@@ -241,6 +267,7 @@ int main( int argc, char **argv ) {
                 }
             }
         }
+	}
     }
     
     //liberation des allocations MPI
