@@ -54,7 +54,7 @@ static inline double norme_carre(double vect[2])
 
 static inline double calc_dt(Atome A, double dist)
 {
-	return ((sqrt(norme_carre(A.vit) + 0.2 * norme(A.acc) * dist) - norme(A.vit))/norme(A.acc));
+	return ((sqrt(norme_carre(A.vit) + 0.02 * norme(A.acc) * dist) - norme(A.vit))/norme(A.acc));
 }
 
 #endif //ATOM_H

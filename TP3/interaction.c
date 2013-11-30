@@ -22,7 +22,7 @@ int main( int argc, char **argv ) {
     Atome *initialDatas;
 
     int myrank, size, maxElem;
-    double double_tmp;
+    double double_tmp, sin_a, cos_a, dist_tmp;
     double *double_tmp_ptr = NULL;
     MPI_Comm_size( MPI_COMM_WORLD, &size);
     MPI_Comm_rank( MPI_COMM_WORLD, &myrank ); 
@@ -124,18 +124,24 @@ int main( int argc, char **argv ) {
 						if(!(m==n && i==0))
 						{
 							//MAJ des distances min
-							double_tmp = distance(initialDatas[m], inputDatas[n]);
-							if(dist_min[m]>double_tmp)
+							dist_tmp = distance(initialDatas[m], inputDatas[n]);
+							if(dist_min[m]>dist_tmp)
 							{
-								dist_min[m]=double_tmp;
+								dist_min[m]=dist_tmp;
 							}
 							
 							// attention, chacune des fonctions
 							// suivantes ne calcule que l'influence
 							// de l'atome courant
 							double_tmp = force_inter(initialDatas[m], inputDatas[n]);
-							double_tmp_ptr[0] = double_tmp * cos(distance(initialDatas[m], inputDatas[n]));
-							double_tmp_ptr[1] = double_tmp * sin(distance(initialDatas[m], inputDatas[n]));
+							
+							sin_a = fabs(initialDatas[m].pos[1] - inputDatas[n].pos[1])/dist_tmp;
+							cos_a = fabs(initialDatas[m].pos[0] - inputDatas[n].pos[0])/dist_tmp;
+							
+							double_tmp_ptr[0] = double_tmp * cos_a;
+							double_tmp_ptr[1] = double_tmp * sin_a;
+							//~ double_tmp_ptr[0] = double_tmp * cos(dist_tmp);
+							//~ double_tmp_ptr[1] = double_tmp * sin(dist_tmp);
 							acceleration(&(initialDatas[m]), double_tmp_ptr);
 							if(k!=0)
 							{
