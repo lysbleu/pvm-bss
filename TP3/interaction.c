@@ -213,22 +213,19 @@ int main( int argc, char **argv ) {
         }
 				
         // ecriture du resultat
-        if(k!=0)
-        {
-            for (int j=0; j<elementsNumber; j++)
-            {
-                if(k==1)//ecrasement si fichier existe deja
-                {
-                    sprintf(command, "echo %lf %lf > results/res_%d_%d.txt", initialDatas[j].pos[0],initialDatas[j].pos[1], myrank, j);	
-                    system(command);
-                }
-                else//concatenation des donnees
-                {
-                    sprintf(command, "echo %lf %lf >> results/res_%d_%d.txt", initialDatas[j].pos[0],initialDatas[j].pos[1], myrank, j);	
-                    system(command);	
-                }
-            }
-        }
+		for (int j=0; j<elementsNumber; j++)
+		{
+			if(k==0)//ecrasement si fichier existe deja
+			{
+				sprintf(command, "echo %lf %lf > results/res_%d_%d.txt", initialDatas[j].pos[0],initialDatas[j].pos[1], myrank, j);	
+				system(command);
+			}
+			else//concatenation des donnees
+			{
+				sprintf(command, "echo %lf %lf >> results/res_%d_%d.txt", initialDatas[j].pos[0],initialDatas[j].pos[1], myrank, j);	
+				system(command);	
+			}
+		}
 	}
     
     //liberation des allocations MPI
