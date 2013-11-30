@@ -135,8 +135,8 @@ int main( int argc, char **argv ) {
 							// de l'atome courant
 							double_tmp = force_inter(initialDatas[m], inputDatas[n]);
 							
-							sin_a = fabs(initialDatas[m].pos[1] - inputDatas[n].pos[1])/dist_tmp;
-							cos_a = fabs(initialDatas[m].pos[0] - inputDatas[n].pos[0])/dist_tmp;
+							sin_a = (initialDatas[m].pos[1] - inputDatas[n].pos[1])/dist_tmp;
+							cos_a = (initialDatas[m].pos[0] - inputDatas[n].pos[0])/dist_tmp;
 							
 							double_tmp_ptr[0] = double_tmp * cos_a;
 							double_tmp_ptr[1] = double_tmp * sin_a;

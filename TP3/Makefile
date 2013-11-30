@@ -16,7 +16,7 @@ interaction: $(OBJ) atom.h
 plot:
 
 launch:
-	mpiexec -np 2 ./interaction ./data/tsl.txt 20000
+	mpiexec -np 1 ./interaction ./data/tsl.txt 2000
 
 .PHONY: clean mrproper
 
