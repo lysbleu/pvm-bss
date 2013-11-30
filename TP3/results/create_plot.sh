@@ -3,6 +3,8 @@ command -v sponge >/dev/null 2>&1 || { echo >&2 "Il faut installer moreutils" ; 
 command -v gnuplot >/dev/null 2>&1 || { echo >&2 "Il faut installer gnuplot"; exit 1; }
 echo "# Fichier temporaire pour gnuplot" > plot
 #~ echo "set logscale y" >> plot
+echo "set size ratio -1" >> plot
+#~ echo "set size square" >> plot
 echo "set terminal pngcairo enhanced size 1000,650" >> plot
 echo "set output 'plot.png'" >> plot
 echo "set key on center rmargin box title \"Nombre de\n processus\"" >> plot
@@ -18,7 +20,7 @@ suffix=".txt"
 echo -n "plot " >> plot
 for i in *.txt
 do
-    echo "\"$i\" using 1:2 title \"$i\" with linespoints,\\" >> plot
+    echo "\"$i\" using 1:2 title \"$i\" with lines,\\" >> plot
 done
 
 head -c-3 plot | sponge plot
