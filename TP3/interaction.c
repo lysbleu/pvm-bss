@@ -9,7 +9,7 @@
 
 void affiche(Atome a)
 {
-	printf("Atome m:%le, pos:(%le, %le), vit:(%le, %le), acc:(%le, %le)\n", a.m, a.pos[0], a.pos[1], a.vit[0], a.vit[1], a.acc[0], a.acc[1]);	
+	printf("Atome m:%le, pos:(%le, %le)\n", a.m, a.pos[0], a.pos[1]);	
 }
 
 int main( int argc, char **argv ) {
@@ -87,130 +87,121 @@ int main( int argc, char **argv ) {
 	//boucle principale (nb_iter == nb de points par courbe)
 	for (int k = 0; k<=nb_iter; k++)
 	{
+		printf("\nDebut proc: %d, iter:%d, avant allreduce\n", myrank,k);
+
 		//calcul du dt local pour chacun des points, on garde le min
 		double_tmp = 0;
 		dt=-1;
-
-		for(int n = 0; n < maxElem; n++)
+		
+		if(k!=0)
 		{
-			double_tmp = calc_dt(initialDatas[n], dist_min[n]);
-			if(dt > double_tmp || dt < 0)
+			for(int n = 0; n < maxElem; n++)
 			{
-				dt = double_tmp;
+				double_tmp = calc_dt(initialDatas[n], dist_min[n]);
+				if(dt > double_tmp || dt < 0)
+				{
+					dt = double_tmp;
+				}
+			}
+			//calcul du dt global avec un MPI_Allreduce
+			//~ printf("\navant allreduce: %d, dt:%lf\n", myrank, dt);
+			MPI_Allreduce(MPI_IN_PLACE, &dt, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+			//~ printf("boucle proc: %d, dt:%lf\n", myrank, dt);
+			for(int z = 0; z<maxElem; z++)
+			{
+				//~ initialDatas[z].vit[0]=0;
+				//~ initialDatas[z].vit[1]=0;
+				initialDatas[z].acc[0]=0;
+				initialDatas[z].acc[1]=0;	
 			}
 		}
-		//calcul du dt global avec un MPI_Allreduce
-		//~ printf("\navant allreduce: %d, dt:%lf\n", myrank, dt);
-		MPI_Allreduce(MPI_IN_PLACE, &dt, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-		//~ printf("boucle proc: %d, dt:%lf\n", myrank, dt);
-		for(int z = 0; z<maxElem; z++)
-		{
-			//~ initialDatas[z].vit[0]=0;
-			//~ initialDatas[z].vit[1]=0;
-			initialDatas[z].acc[0]=0;
-			initialDatas[z].acc[1]=0;	
-		}
-
 		
 
-        inputDatas = (k%2) == 0 ? &(buffer0[0]) : &(buffer1[0]); 
 		
         //pour chaque processus
         for(int i = 0; i<size; i++)
         {
+	        inputDatas = (i%2) == 0 ? &(buffer0[0]) : &(buffer1[0]); 
+
             //debut des communications non bloquantes
             MPI_Start(&(sendRequest[i%2]));
             MPI_Start(&(recvRequest[i%2]));
 			
             //calcul des forces et influence sur les positions 
-            if(i!=0)//cas general
-            {
+              //~ if(i!=0)//cas general
+          //~ {
                 for(int m = 0; m < maxElem; m++)
                 {
                     for(int n = 0; n < maxElem; n++)
                     {
-                        //MAJ des distances min
-                        double_tmp = distance(initialDatas[m], inputDatas[n]);
-                        if(dist_min[m]>double_tmp)
-                        {
-                            dist_min[m]=double_tmp;
-                        }
-						
-                        // attention, chacune des fonctions
-                        // suivantes ne calcule que l'influence
-                        // de l'atome courant
-                        double_tmp = force_inter(initialDatas[m], inputDatas[n]);
-						
-                        double_tmp_ptr[0] = double_tmp * cos(distance(initialDatas[m], inputDatas[n]));
-                        double_tmp_ptr[1] = double_tmp * sin(distance(initialDatas[m], inputDatas[n]));
-                        acceleration(&(initialDatas[m]), double_tmp_ptr);
-                        if(k!=0)
-                        {
-                            vitesse(&(initialDatas[m]), dt);
-                        }
+						if(!(m==n && i==0))
+						{
+							//MAJ des distances min
+							double_tmp = distance(initialDatas[m], inputDatas[n]);
+							if(dist_min[m]>double_tmp)
+							{
+								dist_min[m]=double_tmp;
+							}
+							
+							// attention, chacune des fonctions
+							// suivantes ne calcule que l'influence
+							// de l'atome courant
+							double_tmp = force_inter(initialDatas[m], inputDatas[n]);
+							//~ printf("double_tmp: %le\n", double_tmp);
+
+							double_tmp_ptr[0] = double_tmp * cos(distance(initialDatas[m], inputDatas[n]));
+							double_tmp_ptr[1] = double_tmp * sin(distance(initialDatas[m], inputDatas[n]));
+							acceleration(&(initialDatas[m]), double_tmp_ptr);
+							if(k!=0)
+							{
+								vitesse(&(initialDatas[m]), dt);
+							}
+						}
                     }
                 }
-            }		
-            else//cas particulier, ne pas prendre en compte l influence sur soi meme
-            {				
-                for(int m = 0; m < maxElem; m++)
-                {
-                    for(int n = 0; n < maxElem; n++)
-                    {
-                        if(m != n)
-                        {
-                            //MAJ des distances min
-                            double_tmp = distance(initialDatas[m], inputDatas[n]);
-                            if(dist_min[m]>double_tmp)
-                            {
-                                dist_min[m]=double_tmp;
-                            }
-							
-                            // attention, chacune des fonctions
-                            // suivantes ne calcule que l'influence 
-                            // de l'atome actuel
-                            double_tmp = force_inter(initialDatas[m], inputDatas[n]);
-						
-                            double_tmp_ptr[0] = double_tmp * cos(distance(initialDatas[m], inputDatas[n]));
-                            double_tmp_ptr[1] = double_tmp * sin(distance(initialDatas[m], inputDatas[n]));
-						
+            //~ }		
+            //~ else//cas particulier, ne pas prendre en compte l influence sur soi meme
+            //~ {				
+                //~ for(int m = 0; m < maxElem; m++)
+                //~ {
+                    //~ for(int n = 0; n < maxElem; n++)
+                    //~ {
+                        //~ if(m != n)
+                        //~ {
+                            //~ //MAJ des distances min
+                            //~ double_tmp = distance(initialDatas[m], inputDatas[n]);
+                            //~ if(dist_min[m]>double_tmp)
+                            //~ {
+                                //~ dist_min[m]=double_tmp;
+                            //~ }
+							//~ 
+                            //~ // attention, chacune des fonctions
+                            //~ // suivantes ne calcule que l'influence 
+                            //~ // de l'atome actuel
+                            //~ double_tmp = force_inter(initialDatas[m], inputDatas[n]);
+                            //~ printf("double_tmp: %le\n", double_tmp);
+						//~ 
+                            //~ double_tmp_ptr[0] = double_tmp * cos(distance(initialDatas[m], inputDatas[n]));
+                            //~ double_tmp_ptr[1] = double_tmp * sin(distance(initialDatas[m], inputDatas[n]));
+						//~ 
                             //~ printf("dist:%lf, force_inter:%lf\n", distance(initialDatas[m], inputDatas[n]), force_inter(initialDatas[m], inputDatas[n]));
-						
-                            acceleration(&(initialDatas[m]), double_tmp_ptr);
-                            if(k!=0)
-                            {
-                                vitesse(&(initialDatas[m]), dt);
-                            }
-                        }
+						//~ 
+                            //~ acceleration(&(initialDatas[m]), double_tmp_ptr);
+                            //~ if(k!=0)
+                            //~ {
+                                //~ vitesse(&(initialDatas[m]), dt);
+                            //~ }
+                        //~ }
                         //~ else
                         //~ {
                         //~ dist_min[m]=DBL_MAX;
                         //~ }
-                    }
-                }			
-            }
+                    //~ }
+                //~ }			
+            //~ }
 			
             //attente de la reception des donnees avant l etape suivante
             MPI_Wait(&(recvRequest[i%2]),MPI_STATUS_IGNORE);
-            sleep(myrank*2);
-			printf("Proc %d\n", myrank);
-				if(i%2 == 0)
-				{
-					for(int o=0; o<maxElem;o++)
-					{
-						affiche(buffer1[o]);
-					}
-					printf("\n");
-				}
-				else
-				{
-					for(int o=0; o<maxElem;o++)
-					{
-						affiche(buffer0[o]);
-					}
-					printf("\n");
-				}
-			
         }
         if(k!=0)
         {
@@ -226,7 +217,7 @@ int main( int argc, char **argv ) {
         {
             for (int j=0; j<elementsNumber; j++)
             {
-                if(k==0)//ecrasement si fichier existe deja
+                if(k==1)//ecrasement si fichier existe deja
                 {
                     sprintf(command, "echo %lf %lf > results/res_%d_%d.txt", initialDatas[j].pos[0],initialDatas[j].pos[1], myrank, j);	
                     system(command);
