@@ -7,11 +7,6 @@
 #include "atom.h"
 #include "parser.h"
 
-void affiche(Atome a)
-{
-	printf("Atome m:%le, pos:(%le, %le)\n", a.m, a.pos[0], a.pos[1]);	
-}
-
 int main( int argc, char **argv ) {
     if(argc != 3)
     {
@@ -87,8 +82,6 @@ int main( int argc, char **argv ) {
 	//boucle principale (nb_iter == nb de points par courbe)
 	for (int k = 0; k<=nb_iter; k++)
 	{
-		printf("\nDebut proc: %d, iter:%d, avant allreduce\n", myrank,k);
-
 		//calcul du dt local pour chacun des points, on garde le min
 		double_tmp = 0;
 		dt=-1;
@@ -104,13 +97,9 @@ int main( int argc, char **argv ) {
 				}
 			}
 			//calcul du dt global avec un MPI_Allreduce
-			//~ printf("\navant allreduce: %d, dt:%lf\n", myrank, dt);
 			MPI_Allreduce(MPI_IN_PLACE, &dt, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-			//~ printf("boucle proc: %d, dt:%lf\n", myrank, dt);
 			for(int z = 0; z<maxElem; z++)
 			{
-				//~ initialDatas[z].vit[0]=0;
-				//~ initialDatas[z].vit[1]=0;
 				initialDatas[z].acc[0]=0;
 				initialDatas[z].acc[1]=0;	
 			}
@@ -128,8 +117,6 @@ int main( int argc, char **argv ) {
             MPI_Start(&(recvRequest[i%2]));
 			
             //calcul des forces et influence sur les positions 
-              //~ if(i!=0)//cas general
-          //~ {
                 for(int m = 0; m < maxElem; m++)
                 {
                     for(int n = 0; n < maxElem; n++)
@@ -147,8 +134,6 @@ int main( int argc, char **argv ) {
 							// suivantes ne calcule que l'influence
 							// de l'atome courant
 							double_tmp = force_inter(initialDatas[m], inputDatas[n]);
-							//~ printf("double_tmp: %le\n", double_tmp);
-
 							double_tmp_ptr[0] = double_tmp * cos(distance(initialDatas[m], inputDatas[n]));
 							double_tmp_ptr[1] = double_tmp * sin(distance(initialDatas[m], inputDatas[n]));
 							acceleration(&(initialDatas[m]), double_tmp_ptr);
@@ -159,47 +144,7 @@ int main( int argc, char **argv ) {
 						}
                     }
                 }
-            //~ }		
-            //~ else//cas particulier, ne pas prendre en compte l influence sur soi meme
-            //~ {				
-                //~ for(int m = 0; m < maxElem; m++)
-                //~ {
-                    //~ for(int n = 0; n < maxElem; n++)
-                    //~ {
-                        //~ if(m != n)
-                        //~ {
-                            //~ //MAJ des distances min
-                            //~ double_tmp = distance(initialDatas[m], inputDatas[n]);
-                            //~ if(dist_min[m]>double_tmp)
-                            //~ {
-                                //~ dist_min[m]=double_tmp;
-                            //~ }
-							//~ 
-                            //~ // attention, chacune des fonctions
-                            //~ // suivantes ne calcule que l'influence 
-                            //~ // de l'atome actuel
-                            //~ double_tmp = force_inter(initialDatas[m], inputDatas[n]);
-                            //~ printf("double_tmp: %le\n", double_tmp);
-						//~ 
-                            //~ double_tmp_ptr[0] = double_tmp * cos(distance(initialDatas[m], inputDatas[n]));
-                            //~ double_tmp_ptr[1] = double_tmp * sin(distance(initialDatas[m], inputDatas[n]));
-						//~ 
-                            //~ printf("dist:%lf, force_inter:%lf\n", distance(initialDatas[m], inputDatas[n]), force_inter(initialDatas[m], inputDatas[n]));
-						//~ 
-                            //~ acceleration(&(initialDatas[m]), double_tmp_ptr);
-                            //~ if(k!=0)
-                            //~ {
-                                //~ vitesse(&(initialDatas[m]), dt);
-                            //~ }
-                        //~ }
-                        //~ else
-                        //~ {
-                        //~ dist_min[m]=DBL_MAX;
-                        //~ }
-                    //~ }
-                //~ }			
-            //~ }
-			
+
             //attente de la reception des donnees avant l etape suivante
             MPI_Wait(&(recvRequest[i%2]),MPI_STATUS_IGNORE);
         }

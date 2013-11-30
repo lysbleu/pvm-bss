@@ -72,9 +72,10 @@ int parse(char* filename, Atome **initialDatas, int rank, int nbProcs, int *maxE
 
 void displayAtoms(Atome *atoms, int size) {
     for(int i = 0 ; i < size ; i++) {
-        printf("Masse : %le, position : (%le, %le), vitesse : (%le, %le)\n",
+        printf("Masse : %le, position : (%le, %le), vitesse : (%le, %le), acceleration : (%le, %le)\n",
                atoms[i].m, atoms[i].pos[0], atoms[i].pos[1],
-               atoms[i].vit[0], atoms[i].vit[1]);
+               atoms[i].vit[0], atoms[i].vit[1],
+               atoms[i].acc[0], atoms[i].acc[1]);
     }
 
 }
