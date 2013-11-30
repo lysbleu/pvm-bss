@@ -51,8 +51,8 @@ int main( int argc, char **argv ) {
     MPI_Datatype object; 
     MPI_Aint stride = sizeof(Atome)/sizeof(double);
     MPI_Type_vector(1, blockLength, stride, MPI_DOUBLE, &object);
+    //changement de taill du type pour recevoir dans des Atomes
     MPI_Type_create_resized(object, 0, sizeof(Atome), &object);
-    
     MPI_Type_commit(&object); 
     
     MPI_Request sendRequest[2];
@@ -74,9 +74,7 @@ int main( int argc, char **argv ) {
     char command[200];
 
     //initialisation du buffer local
-    
     memcpy(buffer0, initialDatas, maxElem * sizeof(Atome));
-
     double_tmp_ptr = calloc(2, sizeof(double));
 	
 	//boucle principale (nb_iter == nb de points par courbe)
@@ -84,28 +82,28 @@ int main( int argc, char **argv ) {
 	{
 		//calcul du dt local pour chacun des points, on garde le min
 		double_tmp = 0;
-		dt=-1;
+		dt=DBL_MAX;
 		
 		if(k!=0)
 		{
 			for(int n = 0; n < maxElem; n++)
 			{
 				double_tmp = calc_dt(initialDatas[n], dist_min[n]);
-				if(dt > double_tmp || dt < 0)
+				if(double_tmp > 0 && dt > double_tmp)
 				{
 					dt = double_tmp;
 				}
 			}
+
 			//calcul du dt global avec un MPI_Allreduce
 			MPI_Allreduce(MPI_IN_PLACE, &dt, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
-			for(int z = 0; z<maxElem; z++)
-			{
-				initialDatas[z].acc[0]=0;
-				initialDatas[z].acc[1]=0;	
-			}
 		}
 		
-
+		for(int z = 0; z<maxElem; z++)
+		{
+			initialDatas[z].acc[0]=0;
+			initialDatas[z].acc[1]=0;	
+		}
 		
         //pour chaque processus
         for(int i = 0; i<size; i++)
@@ -121,7 +119,7 @@ int main( int argc, char **argv ) {
                 {
                     for(int n = 0; n < maxElem; n++)
                     {
-						if(!(m==n && i==0))
+						if(!(m==n && i==0) && (initialDatas[m].m >0) && (inputDatas[n].m>0))
 						{
 							//MAJ des distances min
 							dist_tmp = distance(initialDatas[m], inputDatas[n]);
