@@ -41,8 +41,27 @@
 \clearpage
 \section{Introduction}
 
-\section{Présentation de l'algorithme}
 
+
+\section{Présentation de l'algorithme}
+L'algorithme de calcul séquetiel pour calcul de forces gravitationnelle sur un système de $n$ masses distinctes, consiste à répéter pour chaque masse $m$ les étapes suivantes:\\
+
+\begin{itemize}
+\item Pour chaque masse $m'$ distincte de $m$, calculer la force d'intéraction gravitationnelle entre les deux masses.
+\item Calculer la force résultante (direction et norme) de toutes les autres masses sur $m$.
+\item Trouver la distance minimale entre n'importe quelle paire des masses, puis en déduire le pas de calcul ($dt$).
+\item Calculer l'accélération résultante de la masse $m$.
+\item En déduire sa vitesse et sa nouvelle position.
+\end{itemize}
+\\
+Les formules utilisées pour l'accelération, la vitesse et de la position sont celles obtenues par l'application du principe fondamental de la dynamique sur chacune des masses.
+
+Pour la version distribuée, le stockage de l'ensemble des masses est réparti en nombre égal sur l'ensemble des processus. Chaque processus effectue les calculs sur les masses qu'il possède en local, mais doit régulièrement envoyer les données aux autres processus. La topologie et les communications seront décrites dans la partie suivante. On obtient donc l'algorithme suivant, à applique sur chaque masse $m$ locale:\\
+\begin{itemize}
+\item Pour chaque masse  reçue $m'$ distincte de $m$, calculer la force d'intéraction gravitationnelle entre les deux masses.
+\item Calculer l'accélération de la masse $m$, induite par $m'$.
+\item En déduire sa vitesse et sa nouvelle position induite par $m'$.
+\end{itemize}
 
 \section{Topologie, répartition des données et communications}
  
