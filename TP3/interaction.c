@@ -51,7 +51,7 @@ int main( int argc, char **argv ) {
     MPI_Datatype object; 
     MPI_Aint stride = sizeof(Atome)/sizeof(double);
     MPI_Type_vector(1, blockLength, stride, MPI_DOUBLE, &object);
-    //changement de taill du type pour recevoir dans des Atomes
+    //changement de taille du type pour recevoir dans des Atomes
     MPI_Type_create_resized(object, 0, sizeof(Atome), &object);
     MPI_Type_commit(&object); 
     
@@ -138,8 +138,7 @@ int main( int argc, char **argv ) {
 							
 							double_tmp_ptr[0] = double_tmp * cos_a;
 							double_tmp_ptr[1] = double_tmp * sin_a;
-							//~ double_tmp_ptr[0] = double_tmp * cos(dist_tmp);
-							//~ double_tmp_ptr[1] = double_tmp * sin(dist_tmp);
+
 							acceleration(&(initialDatas[m]), double_tmp_ptr);
 							if(k!=0)
 							{
@@ -152,6 +151,7 @@ int main( int argc, char **argv ) {
             //attente de la reception des donnees avant l etape suivante
             MPI_Wait(&(recvRequest[i%2]),MPI_STATUS_IGNORE);
         }
+        
         if(k!=0)
         {
             for(int z = 0; z<maxElem; z++)
