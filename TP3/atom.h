@@ -38,8 +38,8 @@ static inline void acceleration(Atome * A, double F[2])  //calcule l'acceleratio
 
 static inline void new_pos(Atome * A, double dt) // calcule la nouvelle position de A
 {
-	A->pos[0] += A->vit[0]*dt + A->acc[0]*dt/2.;
-	A->pos[1] += A->vit[1]*dt + A->acc[1]*dt/2.;
+	A->pos[0] += A->vit[0]*dt + (A->acc[0]*pow(dt,2))/2.;
+	A->pos[1] += A->vit[1]*dt + (A->acc[1]*pow(dt,2))/2.;
 }
 
 static inline double norme(double vect[2])
