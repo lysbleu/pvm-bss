@@ -20,7 +20,7 @@ suffix=".txt"
 echo -n "plot " >> plot
 for i in *.txt
 do
-    echo "\"$i\" using 1:2 title \"$i\" with lines,\\" >> plot
+    echo "\"$i\" using 1:2 title \"$i\" with linespoints,\\" >> plot
 done
 
 head -c-3 plot | sponge plot
