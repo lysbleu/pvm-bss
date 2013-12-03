@@ -1,0 +1,221 @@
+6400 --------------------------------------------------------------------------
+[[27101,1],21]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: boursouflet
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------
+[boursouflet:52033] 47 more processes have sent help message help-mpi-btl-base.txt / btl:no-nics
+[boursouflet:52033] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+50.25
+5625 --------------------------------------------------------------------------
+[[23064,1],21]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: boursouflet
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------
+[boursouflet:63620] 47 more processes have sent help message help-mpi-btl-base.txt / btl:no-nics
+[boursouflet:63620] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+41.09
+4900 --------------------------------------------------------------------------
+[[40981,1],0]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: boursouflet
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------
+[boursouflet:00649] 47 more processes have sent help message help-mpi-btl-base.txt / btl:no-nics
+[boursouflet:00649] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+34.52
+4225 --------------------------------------------------------------------------
+[[19126,1],21]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: boursouflet
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------
+[boursouflet:59434] 47 more processes have sent help message help-mpi-btl-base.txt / btl:no-nics
+[boursouflet:59434] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+30.47
+3600 --------------------------------------------------------------------------
+[[3552,1],0]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: boursouflet
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------
+[boursouflet:44924] 47 more processes have sent help message help-mpi-btl-base.txt / btl:no-nics
+[boursouflet:44924] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+25.59
+3025 --------------------------------------------------------------------------
+[[64389,1],0]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: boursouflet
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------
+[boursouflet:22809] 47 more processes have sent help message help-mpi-btl-base.txt / btl:no-nics
+[boursouflet:22809] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+21.80
+2500 --------------------------------------------------------------------------
+[[17599,1],0]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: boursouflet
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------
+[boursouflet:58915] 47 more processes have sent help message help-mpi-btl-base.txt / btl:no-nics
+[boursouflet:58915] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+19.54
+2025 --------------------------------------------------------------------------
+[[65263,1],0]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: boursouflet
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------
+[boursouflet:23667] 47 more processes have sent help message help-mpi-btl-base.txt / btl:no-nics
+[boursouflet:23667] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+15.33
+1600 --------------------------------------------------------------------------
+[[6211,1],0]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: boursouflet
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------
+[boursouflet:47839] 47 more processes have sent help message help-mpi-btl-base.txt / btl:no-nics
+[boursouflet:47839] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+11.72
+1225 --------------------------------------------------------------------------
+[[42222,1],0]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: boursouflet
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------
+[boursouflet:01650] 47 more processes have sent help message help-mpi-btl-base.txt / btl:no-nics
+[boursouflet:01650] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+9.16
+900 --------------------------------------------------------------------------
+[[40224,1],0]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: boursouflet
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------
+[boursouflet:16316] 47 more processes have sent help message help-mpi-btl-base.txt / btl:no-nics
+[boursouflet:16316] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+7.45
+625 --------------------------------------------------------------------------
+[[51985,1],21]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: boursouflet
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------
+[boursouflet:27021] 47 more processes have sent help message help-mpi-btl-base.txt / btl:no-nics
+[boursouflet:27021] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+6.23
+400 --------------------------------------------------------------------------
+[[9449,1],0]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: boursouflet
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------
+[boursouflet:34421] 47 more processes have sent help message help-mpi-btl-base.txt / btl:no-nics
+[boursouflet:34421] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+4.42
+225 --------------------------------------------------------------------------
+[[14944,1],0]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: boursouflet
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------
+[boursouflet:39164] 47 more processes have sent help message help-mpi-btl-base.txt / btl:no-nics
+[boursouflet:39164] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+3.60
+100 --------------------------------------------------------------------------
+[[358,1],0]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: boursouflet
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------
+[boursouflet:41978] 47 more processes have sent help message help-mpi-btl-base.txt / btl:no-nics
+[boursouflet:41978] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+2.72
+25 --------------------------------------------------------------------------
+[[2640,1],21]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: boursouflet
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------
+[boursouflet:43212] 47 more processes have sent help message help-mpi-btl-base.txt / btl:no-nics
+[boursouflet:43212] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+2.13
+1 --------------------------------------------------------------------------
+[[2261,1],21]: A high-performance Open MPI point-to-point messaging module
+was unable to find any relevant network interfaces:
+
+Module: OpenFabrics (openib)
+  Host: boursouflet
+
+Another transport will be used instead, although this may result in
+lower performance.
+--------------------------------------------------------------------------
+[boursouflet:43593] 47 more processes have sent help message help-mpi-btl-base.txt / btl:no-nics
+[boursouflet:43593] Set MCA parameter "orte_base_help_aggregate" to 0 to see all help / error messages
+1.65
