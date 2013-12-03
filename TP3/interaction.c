@@ -44,14 +44,15 @@ int main( int argc, char **argv ) {
     {
         dist_min[t] = DBL_MAX;
     }
-	
+	int indice;
     int blockLength = 3; //nb de donnees a envoyer
     
     //type MPI pour Atome, en n envoyant seulement m, pos1, pos2
     MPI_Datatype object; 
     MPI_Aint stride = sizeof(Atome)/sizeof(double);
     MPI_Type_vector(1, blockLength, stride, MPI_DOUBLE, &object);
-    //changement de taill du type pour recevoir dans des Atomes
+    
+    //changement de taille du type pour recevoir dans des Atomes
     MPI_Type_create_resized(object, 0, sizeof(Atome), &object);
     MPI_Type_commit(&object); 
     
@@ -77,12 +78,13 @@ int main( int argc, char **argv ) {
     memcpy(buffer0, initialDatas, maxElem * sizeof(Atome));
     double_tmp_ptr = calloc(2, sizeof(double));
 	
-	//boucle principale (nb_iter == nb de points par courbe)
+	//boucle principale (nb_iter == nb de points par objet)
+	//tour k=0 pour initialisation des distances min
 	for (int k = 0; k<=nb_iter; k++)
 	{
 		//calcul du dt local pour chacun des points, on garde le min
 		double_tmp = 0;
-		dt=DBL_MAX;
+		dt = DBL_MAX;
 		
 		if(k!=0)
 		{
@@ -101,18 +103,19 @@ int main( int argc, char **argv ) {
 		
 		for(int z = 0; z<maxElem; z++)
 		{
-			initialDatas[z].acc[0]=0;
-			initialDatas[z].acc[1]=0;	
+			initialDatas[z].acc[0]  = 0;
+			initialDatas[z].acc[1] = 0;	
 		}
 		
         //pour chaque processus
         for(int i = 0; i<size; i++)
         {
-	        inputDatas = (i%2) == 0 ? &(buffer0[0]) : &(buffer1[0]); 
-
+	        inputDatas = (inputDatas != &(buffer0[0])) ? &(buffer0[0]) : &(buffer1[0]); 
+			indice = (inputDatas == &(buffer0[0])) ? 0 : 1;
+			 
             //debut des communications non bloquantes
-            MPI_Start(&(sendRequest[i%2]));
-            MPI_Start(&(recvRequest[i%2]));
+            MPI_Start(&(sendRequest[indice]));
+            MPI_Start(&(recvRequest[indice]));
 			
             //calcul des forces et influence sur les positions 
                 for(int m = 0; m < maxElem; m++)
@@ -123,9 +126,9 @@ int main( int argc, char **argv ) {
 						{
 							//MAJ des distances min
 							dist_tmp = distance(initialDatas[m], inputDatas[n]);
-							if(dist_min[m]>dist_tmp)
+							if(dist_min[m] > dist_tmp)
 							{
-								dist_min[m]=dist_tmp;
+								dist_min[m] = dist_tmp;
 							}
 							
 							// attention, chacune des fonctions
@@ -138,8 +141,7 @@ int main( int argc, char **argv ) {
 							
 							double_tmp_ptr[0] = double_tmp * cos_a;
 							double_tmp_ptr[1] = double_tmp * sin_a;
-							//~ double_tmp_ptr[0] = double_tmp * cos(dist_tmp);
-							//~ double_tmp_ptr[1] = double_tmp * sin(dist_tmp);
+
 							acceleration(&(initialDatas[m]), double_tmp_ptr);
 							if(k!=0)
 							{
@@ -150,15 +152,16 @@ int main( int argc, char **argv ) {
                 }
 
             //attente de la reception des donnees avant l etape suivante
-            MPI_Wait(&(recvRequest[i%2]),MPI_STATUS_IGNORE);
+            MPI_Wait(&(recvRequest[indice]),MPI_STATUS_IGNORE);
         }
+        
         if(k!=0)
         {
             for(int z = 0; z<maxElem; z++)
             {
                 new_pos(&(initialDatas[z]), dt);	
             }
-            memcpy(buffer0, initialDatas, maxElem * sizeof(Atome));
+            memcpy(inputDatas, initialDatas, maxElem * sizeof(Atome));
         }
 				
         // ecriture du resultat

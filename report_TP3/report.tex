@@ -41,6 +41,7 @@
 \clearpage
 \section{Introduction}
 
+
 Le but de ce projet est de simuler les interactions gravitationnelles entre des corps placés dans un espace sans frottement, notament des corps de grande masse tels que les corps célestes. Lorsque ce nombre de corps est élevé, la puissance de calcul nécessaire pour déterminer toutes les attractions est importante, car chaque corps dans une certaine mesure influe sur tous les autres. Le point positif, c'est qu'il est trivial de paralléliser les calculs car ceux-ci sont tous indépendants. MPI est donc un moyen efficace pour réduire la durée d'exécution sur une machine parallèle.
 
 La force de gravitation s'applique à l'infini dans toute les directions, selon la formule
@@ -49,8 +50,49 @@ La force de gravitation s'applique à l'infini dans toute les directions, selon 
 \| \vec{F}_{A\rightarrow B} \| = G \cdot \frac{M_A \cdot M_B}{\mathit{AB^3}} \cdot \mathit{\vec{AB}}
 \]
 
-
 Pour les tests, nous nous sommes inspirés du système solaire.
+
+\section{Présentation de l'algorithme}
+L'algorithme de calcul séquentiel pour calcul de forces gravitationnelle sur un système de $n$ masses distinctes, consiste à répéter pour chaque masse $m$ les étapes suivantes:\\
+
+\begin{itemize}
+\item Pour chaque masse $m'$ distincte de $m$, calculer la force d'intéraction gravitationnelle entre les deux masses.
+\item Calculer la force résultante (direction et norme) de toutes les autres masses sur $m$.
+\item Trouver la distance minimale entre n'importe quelle paire des masses.
+\item Calculer l'accélération résultante de la masse $m$.
+\item En déduire sa vitesse, le pas de calcul ($dt$) et sa nouvelle position.
+\end{itemize}
+\\
+Les formules utilisées pour l'accelération, la vitesse et de la position sont celles obtenues par l'application du principe fondamental de la dynamique sur chacune des masses.
+
+Pour la version distribuée,% stribuée
+le stockage de l'ensemble des masses est réparti en nombre égal sur l'ensemble des processus. Chaque processus effectue les calculs sur les masses qu'il possède en local, mais doit régulièrement envoyer les données aux autres processus. La topologie et les communications seront décrites dans la partie suivante. On obtient donc l'algorithme suivant, à appliquer sur chaque masse $m$ locale:\\
+\begin{itemize}
+\item On déterminer tout d'abord le pas de calcul (commun à tout les processus), grâce à la distance minimale entre tous les couples de masses mémorisée à l'itération précédente.
+\item Pour chaque masse  reçue $m'$ distincte de $m$, calculer la force d'intéraction gravitationnelle entre les deux masses.
+\item Calculer l'accélération de la masse $m$, induite par $m'$.
+\item En déduire sa vitesse et sa nouvelle position induite par $m'$.
+\end{itemize}
+
+
+Pour chacun des deux algorithmes, on peut itérer indéfiniement afin d'obtenir une trajectoire de chacune des masses plus ou moins longues. Dans les deux cas, on effectue un premier tour de boucle sans modifier les positions afin de déterminer le pas de calcul qui est donné par la formule: (STEPHANE: METTRE LA FORMULE DU dt ICI).
+
+
+
+
+
+\section{Topologie, répartition des données et communications}
+Comme expliqué dans la partie précédente, chaque processus possède une partie des données en local, et doit régulièrement recevoir la nouvelle position de chacune des masses. On choisit donc une structure en anneau, chaque processus stocke le poids, la position, la vitesse et l'accelération de ses masses. De plus, chaque processus utilise deux buffers temporaires, l'un lui permettant de recevoir les données pendant que les calculs sont effectués sur le premier jeu de données. Cela permet de recouvrir les communication par les calculs. Ainsi, pour un pas de calcul (une itération de l'algorithme, permettant de calculer le nouvel état du système après un instant $dt$) et $p$ processus, on effectue $p$ fois les étapes suivantes:\\
+\begin{itemize}
+\item Chaque processus reçoit les données de son prédécesseur dans l'anneau et les stocke dans le premier buffer, et envoie les données présentes dans le deuxième buffer à son successeur. Si $p = 0$, on copie au préalable les données locales dans le buffer 2 avant de l'envoie.
+\item Pendant ce temps, chaque processeur calcule l'influence de chacune des masses du deuxième buffer, sur chacune des masses qu'il stocke en local (les masses doivent être distinctes).
+\end{itemize}\\
+ A chaque itération, on inverse les buffers 1 et 2, l'un devenant celui de réception, l'autre celui qui doit être traité.\\
+ 
+ A la fin des $p$ rotations, les données initiales sont revenues en positions initiale (elles ont parcouru l'ensemble des noeuds de l'anneau), et on a donc calculé l'influence de toutes les masses sur chacune des données locales.
+ On peut donc commencer une nouvelle itération de l'algorithme pour calculer le nouvel état du système. en commençant par calculer le pas de calcul $dt$, en fonction de la distance minimale entre deux masses quelconques, distance mémorisée lors de l'itération précédente.
+ 
+ 
 
 \section{Performances}
 
@@ -58,8 +100,7 @@ Pour les tests, nous nous sommes inspirés du système solaire.
 
 \section{Conclusion}
 
+
 La puissance de MPI se ressent pleinement lorsque l'on a des calculs lourds sans dépendances entre eux. Alors, on augmentant le nombre de processus on peut diminuer la durée d'exécution. On peut alors constater un phénomène de rotation autour du Soleil, comme on pouvait s'y attendre. On a pu constater une amélioration des performances avec l'augmentation du nombre de processus, jusqu'au point où chaque corps est géré par un processus. Exécuté en séquentiel, sur un grand nombre de planètes, cela prendrait un temps considérable, alors que là c'est d'une extrème rapidité.
-
-
 
 \end{document}
