@@ -87,7 +87,7 @@ Comme expliqué dans la partie précédente, chaque processus possède une parti
 \item Chaque processus reçoit les données de son prédécesseur dans l'anneau et les stocke dans le premier buffer, et envoie les données présentes dans le deuxième buffer à son successeur. Si $p = 0$, on copie au préalable les données locales dans le buffer 2 avant de l'envoie.
 \item Pendant ce temps, chaque processeur calcule l'influence de chacune des masses du deuxième buffer, sur chacune des masses qu'il stocke en local (les masses doivent être distinctes).
 \end{itemize}\\
- A chaque itération, on inverse les buffers 1 et 2, l'un devenant celui de réception, l'autre celui qui doit être traité.\\
+ A chaque itération, on inverse les buffers 1 et 2, l'un devenant celui de réception, l'autre celui contenant les données devant être traitées.\\
  
  A la fin des $p$ rotations, les données initiales sont revenues en positions initiale (elles ont parcouru l'ensemble des noeuds de l'anneau), et on a donc calculé l'influence de toutes les masses sur chacune des données locales.
  On peut donc commencer une nouvelle itération de l'algorithme pour calculer le nouvel état du système. en commençant par calculer le pas de calcul $dt$, en fonction de la distance minimale entre deux masses quelconques, distance mémorisée lors de l'itération précédente.
@@ -101,6 +101,6 @@ Comme expliqué dans la partie précédente, chaque processus possède une parti
 \section{Conclusion}
 
 
-La puissance de MPI se ressent pleinement lorsque l'on a des calculs lourds sans dépendances entre eux. Alors, on augmentant le nombre de processus on peut diminuer la durée d'exécution. On peut alors constater un phénomène de rotation autour du Soleil, comme on pouvait s'y attendre. On a pu constater une amélioration des performances avec l'augmentation du nombre de processus, jusqu'au point où chaque corps est géré par un processus. Exécuté en séquentiel, sur un grand nombre de planètes, cela prendrait un temps considérable, alors que là c'est d'une extrème rapidité.
+La puissance de MPI se ressent pleinement lorsque l'on a des calculs lourds sans dépendances entre eux. Alors, en augmentant le nombre de processus on peut diminuer la durée d'exécution. On peut alors constater un phénomène de rotation autour du Soleil, comme on pouvait s'y attendre. On a pu constater une amélioration des performances avec l'augmentation du nombre de processus, jusqu'au point où chaque corps est géré par un processus. Exécuté en séquentiel, sur un grand nombre de planètes, cela prendrait un temps considérable, alors que là c'est d'une extrème rapidité. Malgré ça, si on augmente fortement le nombre de processus sans augmenter le nombre de données, on se retrouve rapidement dans le cas où les calculs ne suffisent plus à recouvrir le temps des communications. L'idéal est donc de garder un équilibre entre le nombre de processus et la quantité de données par processus.
 
 \end{document}
