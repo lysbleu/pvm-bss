@@ -89,14 +89,14 @@ Où $\vec{a}$ est l'accélération du point, $\vec{v}$ sa vitesse, et $\mathit{D
 
 \section{Topologie, répartition des données et communications}
 
-Comme expliqué dans la partie précédente, chaque processus possède une partie des données en local, et doit régulièrement recevoir la nouvelle position de chacune des masses. On choisit donc une structure en anneau, chaque processus stocke le poids, la position, la vitesse et l'accelération de ses masses. De plus, chaque processus utilise deux buffers temporaires, l'un lui permettant de recevoir les données pendant que les calculs sont effectués sur le premier jeu de données. Cela permet de recouvrir les communication par les calculs. Ainsi, pour un pas de calcul (une itération de l'algorithme, permettant de calculer le nouvel état du système après un instant $dt$) et $p$ processus, on effectue $p$ fois les étapes suivantes:
+Comme expliqué dans la partie précédente, chaque processus possède une partie des données en local, et doit régulièrement recevoir la nouvelle position de chacune des masses. On choisit donc une structure en anneau, chaque processus stocke le poids, la position, la vitesse et l'accélération de ses masses. De plus, chaque processus utilise deux buffers temporaires, l'un lui permettant de recevoir les données pendant que les calculs sont effectués sur le premier jeu de données. Cela permet de recouvrir les communication par les calculs. Ainsi, pour un pas de calcul (une itération de l'algorithme, permettant de calculer le nouvel état du système après un instant $dt$) et $p$ processus, on effectue $p$ fois les étapes suivantes:
 \begin{itemize}
 \item Chaque processus reçoit les données de son prédécesseur dans l'anneau et les stocke dans le premier buffer, et envoie les données présentes dans le deuxième buffer à son successeur. Si $p = 0$, on copie au préalable les données locales dans le buffer 2 avant de l'envoie.
 \item Pendant ce temps, chaque processeur calcule l'influence de chacune des masses du deuxième buffer, sur chacune des masses qu'il stocke en local (les masses doivent être distinctes).
 \end{itemize}
  A chaque itération, on inverse les buffers 1 et 2, l'un devenant celui de réception, l'autre celui contenant les données devant être traitées.
 
-Comme expliqué dans la partie précédente, chaque processus possède une partie des données en local, et doit régulièrement recevoir la nouvelle position de chacune des masses. On choisit donc une structure en anneau, chaque processus stocke le poids, la position, la vitesse et l'accelération de ses masses. De plus, chaque processus utilise deux buffers temporaires, l'un lui permettant de recevoir les données pendant que les calculs sont effectués sur le premier jeu de données. Cela permet de recouvrir les communications par les calculs. Ainsi, pour un pas de calcul (une itération de l'algorithme, permettant de calculer le nouvel état du système après un instant $dt$) et $p$ processus, on effectue $p$ fois les étapes suivantes:
+Comme expliqué dans la partie précédente, chaque processus possède une partie des données en local, et doit régulièrement recevoir la nouvelle position de chacune des masses. On choisit donc une structure en anneau, chaque processus stocke le poids, la position, la vitesse et l'accélération de ses masses. De plus, chaque processus utilise deux buffers temporaires, l'un lui permettant de recevoir les données pendant que les calculs sont effectués sur le premier jeu de données. Cela permet de recouvrir les communications par les calculs. Ainsi, pour un pas de calcul (une itération de l'algorithme, permettant de calculer le nouvel état du système après un instant $dt$) et $p$ processus, on effectue $p$ fois les étapes suivantes:
 
 \begin{itemize}
 \item Chaque processus reçoit les données de son prédécesseur dans l'anneau et les stocke dans le premier buffer, et envoie les données présentes dans le deuxième buffer à son successeur. Si $p = 0$, on copie au préalable les données locales dans le buffer 2 avant de l'envoie.
@@ -121,7 +121,7 @@ L'exemple suivant est une simulation de la rotation de la Terre autour du Soleil
 \end{figure}Comme il est possible de le constater, l'orbite est sur notre image une spirale, augurant un sombre futur pour notre planète. Cette incohérence est du à l'imprécision des données initiales utilisées, et possiblement aussi à la taille du pas des itérations.
 Cependant, la trajectoire est logique et régulière, bien que non cohérente avec la réalité. Elle reste correcte par rapport au modèle physique.
 
-Il en est de même pour le graph suivant, représentant les cinq premières planètes du système solaire (Mercure, Vénus, Terre, Mars, Jupiter) ainsi que le Soleil (en 0,0).
+Il en est de même pour le graphe suivant, représentant les cinq premières planètes du système solaire (Mercure, Vénus, Terre, Mars, Jupiter) ainsi que le Soleil (en 0,0).
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\textwidth]{systeme.png}
