@@ -133,14 +133,23 @@ Les trajectoires restent plausibles, même si complètement différentes de la r
 Ci-dessous un graphique illustrant le temps d'exécution du programme sur un grand nombre de points, effectué sur une machine doté de 48 coeurs. 
 Les points sont répartis de manière à ne pas être à la même position, et dotés d'une masse très faible, garantissant que les calculs se déroulent correctement (pas de division par zéro ou autres opérations interdites), et en ne bougeant que très peu (pas de risque de collision, et donc de calculs faux). 
 
-%INSERT GRAPHIQUE HERE
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{perf.png}
+  \caption{Performance du programme}
+  \label{perf}
+\end{figure}
 
-Comme attendu, les performances pour 48 processus sont largement meilleurs, et décroissent alors que le nombre de processus diminue.
+Comme attendu, les performances pour au moins 10 processus sont largement meilleurs.
 Les performances pour un nombre de points faibles sont relativement proches, peu importe le nombre de processus, désignant les parties séquentielles et systèmes non réductibles de notre programme.
 
 Pour le cas avec 6400 objets, le speed up entre l'exécution sur 48 processus et 1 seul est de 9,45 (de 474 secondes, le temps réel devient à 50,25).
 Le speed up est important, et pourrait sans doute l'être encore plus si les données fournies pour chaque processus étaient encore plus importantes (ici, 133-134 données par objet).
-Il est possible que ce nombre ne soit pas suffisant pour couvrir entièrement les calculs.
+Il est possible que ce nombre ne soit pas suffisant pour couvrir entièrement les calculs. 
+
+En effet, la différence de temps d'exécution entre 10 processus et 48 est seulement de 50sec (soit un speed up de 2 pour un ajout de 38 processus).
+Par contre, le meilleur rapport speed-up/nombre de processeurs est pour 10, avec lesquels il y a un speed-up d'environ 5, pour un ajout de 10 processus.
+Il est donc logique de dire que la quantité de données est bien largement insuffisante par la suite pour couvrir le temps de communication si le nombre de processus augmente. 
 
 \section{Conclusion}
 
