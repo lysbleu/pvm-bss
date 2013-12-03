@@ -33,12 +33,12 @@ for (int i=0; i<max; i++)
 				
 		if(i==0 && j==0)//ecrasement si fichier existe deja
 		{
-			sprintf(command, "echo %s %s %s %s %s> data_%d.txt", masse, abs, ord , zero, zero,max);	
+			sprintf(command, "echo %s %s %s %s %s> data/data_%d.txt", masse, abs, ord , zero, zero,max);	
 			system(command);
 		}
 		else//concatenation des donnees
 		{
-			sprintf(command, "echo %s %s %s %s %s>> data_%d.txt", masse, abs, ord , zero, zero,max);	
+			sprintf(command, "echo %s %s %s %s %s>> data/data_%d.txt", masse, abs, ord , zero, zero,max);	
 			system(command);	
 		}
 	}

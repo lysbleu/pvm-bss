@@ -40,8 +40,8 @@ int parse(char* filename, Atome **initialDatas, int rank, int nbProcs, int *maxE
 
 	if(nbLinesByProc == 0)
 	{
-		printf("Nombre insuffisant de donnees pour autant de processus\n");
-		printf("Sera alimente de donnees vides\n");
+		//~ printf("Nombre insuffisant de donnees pour autant de processus\n");
+		//~ printf("Sera alimente de donnees vides\n");
 		//~ MPI_Finalize();
 		//~ exit(0);
 	}
