@@ -7,9 +7,9 @@ echo "set size ratio -1" >> plot
 #~ echo "set size square" >> plot
 echo "set terminal pngcairo enhanced size 1000,650" >> plot
 echo "set output 'plot.png'" >> plot
-echo "set key on center rmargin box title \"Nombre de\n processus\"" >> plot
-echo "set xlabel \"Abscisse\"" >> plot
-echo "set ylabel \"Ordonnee (ms)\"" >> plot
+#~ echo "set key on center rmargin box title \"Nombre de\n processus\"" >> plot
+echo "set xlabel \"Abscisse (m)\"" >> plot
+echo "set ylabel \"Ordonnee (m)\"" >> plot
 
 ###########################################################################
 prefix="res"

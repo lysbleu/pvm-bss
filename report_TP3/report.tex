@@ -65,7 +65,7 @@ L'algorithme de calcul séquentiel pour calcul de forces gravitationnelle sur un
 \\
 Les formules utilisées pour l'accelération, la vitesse et de la position sont celles obtenues par l'application du principe fondamental de la dynamique sur chacune des masses.
 
-Pour la version distribuée,% stribuée
+Pour la version distribuée, % stribuée
 le stockage de l'ensemble des masses est réparti en nombre égal sur l'ensemble des processus. Chaque processus effectue les calculs sur les masses qu'il possède en local, mais doit régulièrement envoyer les données aux autres processus. La topologie et les communications seront décrites dans la partie suivante. On obtient donc l'algorithme suivant, à appliquer sur chaque masse $m$ locale:\\
 \begin{itemize}
 \item On déterminer tout d'abord le pas de calcul (commun à tout les processus), grâce à la distance minimale entre tous les couples de masses mémorisée à l'itération précédente.
@@ -82,21 +82,50 @@ Pour chacun des deux algorithmes, on peut itérer indéfiniement afin d'obtenir 
 
 
 \section{Topologie, répartition des données et communications}
-Comme expliqué dans la partie précédente, chaque processus possède une partie des données en local, et doit régulièrement recevoir la nouvelle position de chacune des masses. On choisit donc une structure en anneau, chaque processus stocke le poids, la position, la vitesse et l'accelération de ses masses. De plus, chaque processus utilise deux buffers temporaires, l'un lui permettant de recevoir les données pendant que les calculs sont effectués sur le premier jeu de données. Cela permet de recouvrir les communication par les calculs. Ainsi, pour un pas de calcul (une itération de l'algorithme, permettant de calculer le nouvel état du système après un instant $dt$) et $p$ processus, on effectue $p$ fois les étapes suivantes:\\
+Comme expliqué dans la partie précédente, chaque processus possède une partie des données en local, et doit régulièrement recevoir la nouvelle position de chacune des masses. On choisit donc une structure en anneau, chaque processus stocke le poids, la position, la vitesse et l'accelération de ses masses. De plus, chaque processus utilise deux buffers temporaires, l'un lui permettant de recevoir les données pendant que les calculs sont effectués sur le premier jeu de données. Cela permet de recouvrir les communications par les calculs. Ainsi, pour un pas de calcul (une itération de l'algorithme, permettant de calculer le nouvel état du système après un instant $dt$) et $p$ processus, on effectue $p$ fois les étapes suivantes:\\
 \begin{itemize}
 \item Chaque processus reçoit les données de son prédécesseur dans l'anneau et les stocke dans le premier buffer, et envoie les données présentes dans le deuxième buffer à son successeur. Si $p = 0$, on copie au préalable les données locales dans le buffer 2 avant de l'envoie.
 \item Pendant ce temps, chaque processeur calcule l'influence de chacune des masses du deuxième buffer, sur chacune des masses qu'il stocke en local (les masses doivent être distinctes).
 \end{itemize}\\
- A chaque itération, on inverse les buffers 1 et 2, l'un devenant celui de réception, l'autre celui contenant les données devant être traitées.\\
+ A chaque itération, les buffers 1 et 2 sont inversés, l'un devenant celui de réception, l'autre celui contenant les données devant être traitées.\\
  
- A la fin des $p$ rotations, les données initiales sont revenues en positions initiale (elles ont parcouru l'ensemble des noeuds de l'anneau), et on a donc calculé l'influence de toutes les masses sur chacune des données locales.
+ A la fin des $p$ rotations, les données initiales sont revenues en positions initiale (elles ont parcouru l'ensemble des noeuds de l'anneau), et l'influence de toutes les masses sur chacune des données locales a donc été calculée.
  On peut donc commencer une nouvelle itération de l'algorithme pour calculer le nouvel état du système. en commençant par calculer le pas de calcul $dt$, en fonction de la distance minimale entre deux masses quelconques, distance mémorisée lors de l'itération précédente.
  
  
 
-\section{Performances}
+\section{Vérifications et Performances}
+\subsection{Vérifications}
+Afin de vérifier la correction de notre programme, nous l'avons testé sur différents exemples d'abord simple (deux objets immobiles, de masses identiques ou différentes), avant de passer à des exemples plus complexes.
+L'exemple suivant est une simulation de la rotation de la Terre autour du Soleil (en (0,0)).
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{orbite_terre.png}
+  \caption{Performance du programme}
+  \label{perf}
+\end{figure}Comme il est possible de le constater, l'orbite est sur notre image une spirale, augurant un sombre futur pour notre planète. Cette incohérence est du à l'imprécision des données initiales utilisées, et possiblement aussi à la taille du pas des itérations.
+Cependant, la trajectoire est logique et régulière, bien que non cohérente avec la réalité. Elle reste correcte par rapport au modèle physique.
 
+Il en est de même pour le graph suivant, représentant les cinq premières planètes du système solaire (Mercure, Vénus, Terre, Mars, Jupiter) ainsi que le Soleil (en 0,0).
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{systeme.png}
+  \caption{Performance du programme}
+  \label{perf}
+\end{figure}
+Les trajectoires restent plausibles, même si complètement différentes de la réalité.  
+\subsection{Performances}
+Ci-dessous un graphique illustrant le temps d'exécution du programme sur un grand nombre de points, effectué sur une machine doté de 48 coeurs. 
+Les points sont répartis de manière à ne pas être à la même position, et dotés d'une masse très faible, garantissant que les calculs se déroulent correctement (pas de division par zéro ou autres opérations interdites), et en ne bougeant que très peu (pas de risque de collision, et donc de calculs faux). 
 
+%INSERT GRAPHIQUE HERE
+
+Comme attendu, les performances pour 48 processus sont largement meilleurs, et décroissent alors que le nombre de processus diminue.
+Les performances pour un nombre de points faibles sont relativement proches, peu importe le nombre de processus, désignant les parties séquentielles et systèmes non réductibles de notre programme.
+
+Pour le cas avec 6400 objets, le speed up entre l'exécution sur 48 processus et 1 seul est de 9,45 (de 474 secondes, le temps réel devient à 50,25).
+Le speed up est important, et pourrait sans doute l'être encore plus si les données fournies pour chaque processus étaient encore plus importantes (ici, 133-134 données par objet).
+Il est possible que ce nombre ne soit pas suffisant pour couvrir entièrement les calculs.
 
 \section{Conclusion}
 
