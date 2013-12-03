@@ -8,8 +8,8 @@ echo "set size ratio -1" >> plot
 echo "set terminal pngcairo enhanced size 1000,650" >> plot
 echo "set output 'plot.png'" >> plot
 echo "set key on center rmargin box title \"Nombre de\n processus\"" >> plot
-echo "set xlabel \"Longueur du mot (lettres)\"" >> plot
-echo "set ylabel \"Temps (ms)\"" >> plot
+echo "set xlabel \"Abscisse\"" >> plot
+echo "set ylabel \"Ordonnee (ms)\"" >> plot
 
 ###########################################################################
 prefix="res"
@@ -20,7 +20,7 @@ suffix=".txt"
 echo -n "plot " >> plot
 for i in *.txt
 do
-    echo "\"$i\" using 1:2 title \"$i\" with linespoints,\\" >> plot
+    echo "\"$i\" using 1:2 title \"$i\" with lines,\\" >> plot
 done
 
 head -c-3 plot | sponge plot
