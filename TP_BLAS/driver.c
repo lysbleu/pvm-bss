@@ -3,6 +3,8 @@
 #include <string.h>
 #include "util.h"
 #include "dgemm.h"
+#include "ddot.h"
+
 int main(int argc, char* argv[])
 {
 	blas_t *vecteur;
@@ -33,6 +35,10 @@ int main(int argc, char* argv[])
 	memset(matriceC, 0, sizeof(blas_t)*5*5);
 	cblas_dgemm_scalaire3(matriceC,5, matriceA,5,  matriceB, 5, 5);
 	affiche(5,5,matriceC, 5, stdout);
+
+// Tests de performances de ddot	
+	blas_t res = ddot(25, matriceA, 1, matriceB, 1);
+
 
 	free(matriceA);
 	free(matriceB);
