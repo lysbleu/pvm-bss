@@ -50,12 +50,12 @@ void cblas_dgemm_scalaire(const int M, const int N,
                  const double beta, blas_t *C, const int ldc)
 {
 	int i,j,k;
-	for (j=0; j<m; j++)
+	for (j=0; j<N; j++)
 	{
-		for (i=0; i<m;i++)
+		for (i=0; i<M;i++)
 		{
 			C[j*ldc+i]*=beta;
-			for(k=0; k<m; k++)
+			for(k=0; k<K; k++)
 			{	
 				C[j*ldc+i] += alpha*A[k*lda+i]*B[k+j*ldb];
 			}
@@ -97,7 +97,7 @@ void cblas_dger(const int M, const int N,
                 const double alpha, const double *X, const int incX,
                 const double *Y, const int incY, double *A, const int lda)
 {
-	int i,j, k;
+	int i,j;
 	for(i=0; i< N; i++)
 	{
 		for(j=0; j<M; j++)
