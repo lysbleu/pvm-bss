@@ -1,12 +1,11 @@
 #ifndef PERF_H
 #define PERF_H
 #include <sys/time.h>
+#include <stdlib.h>
 
 typedef struct timeval perf_t;
 
-void 
-perf(perf_t * p);
-
+void perf(perf_t * p);
 void 
 perf_diff(const perf_t * begin, perf_t * end);
 

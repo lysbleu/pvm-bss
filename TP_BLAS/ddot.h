@@ -1,7 +1,7 @@
 #ifndef DDOT_H
 #define DDOT_H
 
-#include util.h
+#include "util.h"
 
 blas_t ddot(const int N, const double *X, const int incX,
                   const double *Y, const int incY);
