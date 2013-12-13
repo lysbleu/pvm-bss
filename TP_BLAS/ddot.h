@@ -3,7 +3,6 @@
 
 #include util.h
 
-blas_t * ddot(blas_t * x, blas_t * y, int dim);
-
-
+blas_t ddot(const int N, const double *X, const int incX,
+                  const double *Y, const int incY);
 #endif //DDOT_H
