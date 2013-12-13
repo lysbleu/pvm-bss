@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void 
-perf(perf_t * p) {
+
+void perf(perf_t * p)
+{
   gettimeofday(p, NULL);  
 }
 

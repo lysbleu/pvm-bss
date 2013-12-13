@@ -9,7 +9,7 @@ blas_t ddot(const int N, const blas_t *X, const int incX,
 	
 	for(int i = 0; i<N; i++)
 	{
-		res[i] += X[i * incX] * Y[i * incY];
+		res += X[i * incX] * Y[i * incY];
 	}
 	
 	return res;

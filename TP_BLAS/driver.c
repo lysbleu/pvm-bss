@@ -4,6 +4,7 @@
 #include "util.h"
 #include "dgemm.h"
 #include "ddot.h"
+#include "perf.h"
 
 int main(int argc, char* argv[])
 {
@@ -37,8 +38,27 @@ int main(int argc, char* argv[])
 	affiche(5,5,matriceC, 5, stdout);
 
 // Tests de performances de ddot	
-	blas_t res = ddot(25, matriceA, 1, matriceB, 1);
 
+	blas_t *matriceD, *matriceE;
+	alloc_matrice(&matriceD, 100,100);
+	alloc_matrice(&matriceE, 100,100);
+
+	printf("Tests de performance de la fonction ddot\n");
+	perf_t *t1, *t2;
+	t1 = malloc(sizeof(perf_t));
+	t2 = malloc(sizeof(perf_t));
+	double mflops;
+	perf(t1);
+	blas_t res = ddot(10000, matriceD, 1, matriceE, 1);
+	printf("Résultat du produit scalaire: %le \n", res);
+	perf(t2);
+	perf_printh(t1);
+	perf_printh(t2);
+	perf_diff(t1, t2);
+	perf_printh(t2);
+	
+	mflops = perf_mflops(t2, 10000);
+	printf("Mflops/s: %le\n", mflops);
 
 	free(matriceA);
 	free(matriceB);
