@@ -71,12 +71,12 @@ int main(int argc, char* argv[])
 		long time = t2->tv_usec + ( t2->tv_sec * 1000000);
 		if(size2==25)//ecrasement si fichier existe deja
 		{
-			sprintf(command, "echo %d %ld > results/ddot_perf.txt", size2, time);	
+			sprintf(command, "echo %ld %d > results/ddot_perf.txt", time, size2);	
 			system(command);
 		}
 		else//concatenation des donnees
 		{
-			sprintf(command, "echo %d %ld >> results/ddot_perf.txt", size2, time);	
+			sprintf(command, "echo %ld %d >> results/ddot_perf.txt", time, size2);	
 			system(command);	
 		}
 		
