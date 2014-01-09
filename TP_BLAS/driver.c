@@ -3,7 +3,8 @@
 #include <string.h>
 #include "util.h"
 
-#ifdef __INTEL_MLK__
+
+#ifndef __INTEL_MLK__
 #include "dgemm.h"
 #include "ddot.h"
 #endif
