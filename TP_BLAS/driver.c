@@ -2,8 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include "util.h"
+
+#ifdef __INTEL_MLK__
 #include "dgemm.h"
 #include "ddot.h"
+#endif
+
+#ifdef __INTEL_MLK__
+#include <mkl.h>
+#endif
+
 #include "perf.h"
 
 int main(int argc, char* argv[])
@@ -36,7 +44,7 @@ int main(int argc, char* argv[])
 		}
 		size2 = size * size;
 		perf(t1);
-		blas_t res = ddot(size2, matriceD, 1, matriceE, 1);
+		blas_t res = cblas_ddot(size2, matriceD, 1, matriceE, 1);
 		perf(t2);
 		perf_diff(t1, t2);
 		mflops = perf_mflops(t2, size2);
@@ -64,6 +72,11 @@ int main(int argc, char* argv[])
 	
 	blas_t *matriceA, *matriceB, *matriceC;
 	
+	alloc_matrice(&matriceA, m, k);
+	alloc_matrice(&matriceB, k, n);
+	alloc_matrice(&matriceC, m, n);
+	
+
 	for(m = 50; m*n < 10000000; m+= (m/4) + (m/4)%2)
 	{
 		n = m;

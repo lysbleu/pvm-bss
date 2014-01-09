@@ -27,6 +27,9 @@ util.o:util.c util.h
 %.o: %.c
 	@$(CC) -o $@ -c $< $(CFLAGS)
 
+mkl: driver.o util.o perf.o
+	icc -o driver_mkl driver.o perf.o util.o $(LDFLAGS) -mkl
+
 .PHONY: clean mrproper
 
 clean:

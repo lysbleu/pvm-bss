@@ -1,0 +1,53 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[francais]{babel}
+%% Prévu pour compiler avec lualatex
+% \usepackage[utf8]{inputenc}
+\usepackage{fontspec}
+%\usepackage{libertine}
+% \usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage[top=2.5cm, bottom=2.5cm, left=2cm, right=2cm]{geometry}
+\usepackage{listings}
+\usepackage[utf8]{luainputenc}
+\usepackage[hidelinks]{hyperref}
+\usepackage{caption}
+
+\lfoot{\bsc{Enseirb-Matmeca}}
+\rfoot{Informatique --- 3\ieme{} année}
+
+\pagestyle{fancy}
+\begin{document}
+
+\begin{titlepage}
+  \begin{center}
+
+    \begin{center}
+      \includegraphics[width=4cm]{EM.jpg}
+    \end{center}
+
+    \vspace*{1cm}
+        
+    \rule{0.75\linewidth}{0.7mm}\\[0.4cm]
+    {\Huge Rapport TP4 --- BLAS\\[0.4cm]}
+    \rule{0.75\linewidth}{0.7mm} \\[1.5cm]
+
+    {\Large Bazire \bsc{Houssin}\\Sylvain \bsc{Vaglica}\\Stéphane \bsc{Castelli}\\[2cm]}
+    {\Large Vendredi 10 Janvier 2014}
+  \end{center}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+\section{Introduction}
+
+BLAS (Basic Linear Algebra Subprograms) est un ensemble de fonctions permettant de faire de l'algèbre linéaire avec des matrices et des vecteurs, notamment les multiplications. Diverses implémentations existent, très optimisées afin d'être utilisées dans des calculs de hautes performances. On se propose de réaliser la notre, d'abord de manière séquentielle puis parallèle, pour ensuite comparer les performances avec l'implémentation MKL (Math Kernel Library) de Intel.
+
+\section{Version séquentielle}
+
+\section{Version parallèle}
+
+\section{Conclusion}
+
+
+\end{document}
