@@ -1,6 +1,9 @@
 #include "dgemm.h"
 #include <pthread.h>
 #include <string.h>
+
+int max_threads  = 1 ;
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 void cblas_dgemm_scalaire1(blas_t *C,int ldc, blas_t *A,int lda,  blas_t *B,
                            int ldb, int m)
 {
@@ -168,7 +171,6 @@ void cblas_dgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA
 	char var_env[100];
 	strcpy(var_env,getenv("MYLIB_NUM_THREADS"));
 	int num_threads = 1;
-	int max_threads = 1;
 	pthread_t threads[4];
 
 	if(var_env != NULL)
@@ -247,7 +249,9 @@ void cblas_dgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA
 			}
 			else
 			{
+				pthread_mutex_lock(
 				num_threads +=4;
+				
 				struct arg arg_thread;
 				arg_thread.TransA = TransA;
 				arg_thread.TransB = TransB;
