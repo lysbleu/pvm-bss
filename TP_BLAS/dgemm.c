@@ -257,7 +257,7 @@ void cblas_dgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA
 			{
 				pthread_mutex_lock(&lock);
 				num_threads +=4;
-				phtread_mutex_unlock(&lock);
+				pthread_mutex_unlock(&lock);
 				
 				struct arg arg_thread;
 				arg_thread.TransA = TransA;

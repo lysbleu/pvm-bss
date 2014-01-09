@@ -2,10 +2,10 @@ DEBUG=yes
 CC=gcc
 ifeq ($(DEBUG),yes)
 	CFLAGS=-W -Wall -Wextra -ansi -pedantic -g -std=c99
-	LDFLAGS=
+	LDFLAGS= -lpthread
 else
 	CFLAGS=-W -Wall -Wextra	-O3 -ansi -pedantic -std=c99
-	LDFLAGS=
+	LDFLAGS= -lpthread
 endif
 EXEC=driver
 SRC= $(wildcard *.c)
