@@ -107,3 +107,21 @@ void cblas_dger(const int M, const int N,
 	}
 }
 
+void cblas_dgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA,
+                 const enum CBLAS_TRANSPOSE TransB, const int M, const int N,
+                 const int K, const blas_t alpha, const blas_t *A,
+                 const int lda, const blas_t *B, const int ldb,
+                 const blas_t beta, blas_t *C, const int ldc)
+{
+	cblas_dgemm_scalaire(M/2, N/2, K/2, alpha, A, lda, B, ldb, beta, C, ldc);
+	cblas_dgemm_scalaire(M/2, N/2, K/2, alpha, &(A[(K/2)*lda]), lda, &(B[(K/2)]), ldb, 1, C, ldc);
+	
+	cblas_dgemm_scalaire(M/2, N/2, K/2, alpha, A, lda, &(B[(N/2)*ldb]), ldb, beta, &(C[(N/2)*ldc]), ldc);
+	cblas_dgemm_scalaire(M/2, N/2, K/2, alpha, &(A[(K/2)*lda]), lda, &(B[(K/2)+(N/2)*ldb]), ldb, 1,  &(C[(N/2)*ldc]), ldc);
+	
+	cblas_dgemm_scalaire(M/2, N/2, K/2, alpha, &(A[(M/2)]), lda, B, ldb, beta, &(C[M/2]), ldc);
+	cblas_dgemm_scalaire(M/2, N/2, K/2, alpha, &(A[(K/2)*lda+(M/2)]), lda, &(B[(K/2)]), ldb, 1,  &(C[M/2]), ldc);
+	
+	cblas_dgemm_scalaire(M/2, N/2, K/2, alpha, &(A[(M/2)]), lda, &(B[(N/2)*ldb]), ldb, beta, &(C[M/2+(N/2)*ldc]), ldc);
+	cblas_dgemm_scalaire(M/2, N/2, K/2, alpha, &(A[(K/2)*lda+(M/2)]), lda, &(B[(K/2)+(N/2)*ldb]), ldb, 1,  &(C[M/2+(N/2)*ldc]), ldc);
+}
