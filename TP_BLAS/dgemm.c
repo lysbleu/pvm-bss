@@ -156,9 +156,86 @@ void *execute(void *arg_)
 	}
 	else
 	{
+		pthread_t threads[4];
+		int A2,A3,A4,B2, B3, B4, lda_bis, ldb_bis;  
 		pthread_mutex_lock(&lock);
 		num_threads +=4;
 		pthread_mutex_unlock(&lock);
+
+
+		lda_bis = argument->lda;
+		A2=(argument->K/2)*argument->lda;
+		A3=(argument->M/2);
+		A4=(argument->K/2)*argument->lda+(argument->M/2);
+		
+		ldb_bis = argument->ldb;
+		B2=(argument->N/2)*argument->ldb;
+		B3=(argument->K/2);
+		B4=(argument->K/2)+(argument->N/2)*argument->ldb;
+		
+		struct arg arg_thread;
+		arg_thread.TransA = argument->TransA;
+		arg_thread.TransB = argument->TransB;
+		arg_thread.M = argument->M/2;
+		arg_thread.N = argument->N/2;
+		arg_thread.K = argument->K/2;
+		arg_thread.alpha = argument->alpha;
+		arg_thread.A = argument->A;
+		arg_thread.lda = argument->lda;
+		arg_thread.B = argument->B;
+		arg_thread.ldb = argument->ldb;
+		arg_thread.beta = argument->beta;
+		arg_thread.C = argument->C;
+
+		struct arg *arg_thread_tmp1 = calloc(1, sizeof(struct arg));
+		memcpy(arg_thread_tmp1, &arg_thread, sizeof(struct arg));
+		arg_thread_tmp1->A_i1 = 0;
+		arg_thread_tmp1->A_i2 = A2;
+		arg_thread_tmp1->B_i1 = 0;
+		arg_thread_tmp1->B_i2 = B3;
+		arg_thread_tmp1->C_i = 0;
+
+		pthread_create(&(threads[0]), NULL, execute, arg_thread_tmp1);
+		
+		struct arg *arg_thread_tmp2 = calloc(1, sizeof(struct arg));
+		memcpy(arg_thread_tmp2, &arg_thread, sizeof(struct arg));
+		arg_thread_tmp2->A_i1 = 0;
+		arg_thread_tmp2->A_i2 = A2;
+		arg_thread_tmp2->B_i1 = B2;
+		arg_thread_tmp2->B_i2 = B4;
+		arg_thread_tmp2->C_i = (argument->N/2)*argument->ldc;
+
+		pthread_create(&(threads[1]), NULL, execute, arg_thread_tmp2);
+		
+		struct arg *arg_thread_tmp3 = calloc(1, sizeof(struct arg));
+		memcpy(arg_thread_tmp3, &arg_thread, sizeof(struct arg));
+		arg_thread_tmp3->A_i1 = A3;
+		arg_thread_tmp3->A_i2 = A4;
+		arg_thread_tmp3->B_i1 = 0;
+		arg_thread_tmp3->B_i2 = B3;
+		arg_thread_tmp3->C_i = argument->M/2;
+
+		pthread_create(&(threads[2]), NULL, execute, arg_thread_tmp3);
+		
+		struct arg *arg_thread_tmp4 = calloc(1, sizeof(struct arg));
+		memcpy(arg_thread_tmp4, &arg_thread, sizeof(struct arg));
+		arg_thread_tmp4->A_i1 = A3;
+		arg_thread_tmp4->A_i2 = A4;
+		arg_thread_tmp4->B_i1 = B2;
+		arg_thread_tmp4->B_i2 = B4;
+		arg_thread_tmp4->C_i = argument->M/2+(argument->N/2)*argument->ldc;
+
+		pthread_create(&(threads[3]), NULL, execute, arg_thread_tmp4);
+		
+		pthread_join(threads[0], NULL);
+		pthread_join(threads[1], NULL);
+		pthread_join(threads[2], NULL);
+		pthread_join(threads[3], NULL);
+		
+		pthread_mutex_lock(&lock);
+		num_threads -=1;
+		pthread_mutex_unlock(&lock);
+
 	}
 	
 	return NULL;
