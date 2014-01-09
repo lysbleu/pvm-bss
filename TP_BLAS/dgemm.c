@@ -59,15 +59,6 @@ void cblas_dgemm_scalaire(const enum CBLAS_TRANSPOSE TransA,
                  const blas_t beta, blas_t *C, const int ldc)
 {
 	int i,j,k;
-	if(TransA == CblasNoTrans)
-	{
-		
-	}
-	
-	if(TransB == CblasTrans)
-	{
-		
-	}
 	
 	for (j=0; j<N; j++)
 	{
@@ -155,6 +146,19 @@ void cblas_dger(const enum CBLAS_ORDER order, const int M, const int N,
 void *execute(void *arg_)
 {
 	struct arg *argument = arg_;
+	if(num_threads == max_threads)
+	{
+		cblas_dgemm_scalaire(argument->TransA, argument->TransB, argument->M, argument->N, argument->K, argument->alpha, &((argument->A)[argument->A_i1]), argument->lda, &((argument->B)[argument->B_i1]), argument->ldb, argument->beta, &((argument->C)[argument->C_i]), argument->ldc);
+		cblas_dgemm_scalaire(argument->TransA, argument->TransB, argument->M, argument->N, argument->K, argument->alpha, &((argument->A)[argument->A_i2]), argument->lda, &((argument->B)[argument->B_i2]), argument->ldb, 1, &((argument->C)[argument->C_i]), argument->ldc);
+		//~ cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, &(Abis[A2]), lda_bis, &(Bbis[B3]), ldb_bis, 1, C, ldc);
+	}
+	else
+	{
+		pthread_mutex_lock(&lock);
+		num_threads +=4;
+		phtread_mutex_unlock(&lock);
+	}
+	
 	return NULL;
 }
 
@@ -169,12 +173,14 @@ void cblas_dgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA
 	int i,j,A2,A3,A4,B2,B3,B4,lda_bis, ldb_bis;
 	
 	char var_env[100];
-	strcpy(var_env,getenv("MYLIB_NUM_THREADS"));
+	
 	int num_threads = 1;
 	pthread_t threads[4];
 
-	if(var_env != NULL)
+	if(getenv("MYLIB_NUM_THREADS") != NULL)
 	{
+		strcpy(var_env,getenv("MYLIB_NUM_THREADS"));
+
 		max_threads = atoi(var_env);
 	} 
 	
@@ -232,7 +238,7 @@ void cblas_dgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA
 				B3=(K/2);
 				B4=(K/2)+(N/2)*ldb;
 			}
-			
+				
 			if(num_threads == 1 || num_threads == max_threads)
 			{
 				cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, Abis, lda_bis, Bbis, ldb_bis, beta, C, ldc);
