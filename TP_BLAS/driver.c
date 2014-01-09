@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
 	alloc_matrice(&matriceC, m, n);
 	
 
-	for(m = 50; m*n < 10000000; m+= (m/4) + (m/4)%2)
+	for(m = 50; m*n < 1000000; m+= (m/4) + (m/4)%2)
 	{
 		n = m;
 		k = m;
@@ -113,7 +113,8 @@ int main(int argc, char* argv[])
 			sprintf(command, "echo %d %ld >> results/dgemm_perf.txt",size2, time);	
 			system(command);	
 		}
-		
+		n+= (m/4) + (m/4)%2;
+		k+= (m/4) + (m/4)%2;
 	}
 	printf("Mflops/s: %le\n", mflops);
 

@@ -158,7 +158,7 @@ void *execute(void *arg_)
 	{
 		pthread_mutex_lock(&lock);
 		num_threads +=4;
-		phtread_mutex_unlock(&lock);
+		pthread_mutex_unlock(&lock);
 	}
 	
 	return NULL;
