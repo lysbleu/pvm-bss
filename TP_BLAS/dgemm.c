@@ -1,4 +1,5 @@
 #include "util.h"
+#include <pthread.h>
 void cblas_dgemm_scalaire1(blas_t *C,int ldc, blas_t *A,int lda,  blas_t *B,
                            int ldb, int m)
 {
@@ -114,19 +115,6 @@ void cblas_dgemv(const enum CBLAS_ORDER order,
 	{
 		printf("cblas_dgemv : Only CblasColMajor is allowed\n"); 
 	}
-    int i,j,k;
-    for (j=0; j<N; j++)
-    {
-        for (i=0; i<M;i++)
-        {	
-            Y[j*incY]=0;
-            for(k=0; k<N; k++)
-            {	
-                Y[j*incY] += A[k*lda+i]*X[k*incX];
-            }
-            Y[j*incY]*=alpha*beta;
-        }
-    }
 }
 
 void cblas_daxpy(const int N, const blas_t alpha,const blas_t *X, const int ldx,
@@ -160,6 +148,33 @@ void cblas_dger(const enum CBLAS_ORDER order, const int M, const int N,
 	}
 }
 
+struct arg{
+	CBLAS_TRANSPOSE TransA;
+	CBLAS_TRANSPOSE TransB;
+	int M;
+	int N;
+	int K;
+	int alpha;
+	blas_t A;
+	blas_t lda;
+	blas_t B;
+	int ldb;
+	blas_t beta;
+	blas_t *C; 
+	int ldc
+	int A_i1;
+	int A_i2;
+	int B_i1;
+	int B_i2;
+	int C_i;
+};
+
+void *execute(void *arg_)
+{
+	struct arg argument = *arg_;
+	return NULL;
+}
+
 void cblas_dgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA,
                  const enum CBLAS_TRANSPOSE TransB, const int M, const int N,
                  const int K, const blas_t alpha, const blas_t *A,
@@ -169,6 +184,16 @@ void cblas_dgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA
 	blas_t *Abis=A;
 	blas_t *Bbis=B;
 	int i,j,A2,A3,A4,B2,B3,B4,lda_bis, ldb_bis;
+	
+	char var_env[100] = getenv("MYLIB_NUM_THREADS");
+	int num_threads = 1;
+	int max_threads = 1;
+	pthread_t threads[4];
+
+	if(var_env != NULL)
+	{
+		max_threads = atoi(var_env);
+	} 
 	
 	if(Order == CblasColMajor)
 	{
@@ -225,17 +250,82 @@ void cblas_dgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA
 				B4=(K/2)+(N/2)*ldb;
 			}
 			
-			cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, Abis, lda_bis, Bbis, ldb_bis, beta, C, ldc);
-			cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, &(Abis[A2]), lda_bis, &(Bbis[B3]), ldb_bis, 1, C, ldc);
-			
-			cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, Abis, lda_bis, &(Bbis[B2]), ldb_bis, beta, &(C[(N/2)*ldc]), ldc);
-			cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, &(Abis[B2]), lda_bis, &(Bbis[B4]), ldb_bis, 1,  &(C[(N/2)*ldc]), ldc);
-			
-			cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, &(Abis[A3]), lda_bis, Bbis, ldb_bis, beta, &(C[M/2]), ldc);
-			cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, &(Abis[A4]), lda_bis, &(Bbis[B3]), ldb_bis, 1,  &(C[M/2]), ldc);
-			
-			cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, &(Abis[A3]), lda_bis, &(Bbis[B2]), ldb_bis, beta, &(C[M/2+(N/2)*ldc]), ldc);
-			cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, &(Abis[A4]), lda_bis, &(Bbis[B4]), ldb_bis, 1,  &(C[M/2+(N/2)*ldc]), ldc);
+			if(num_threads == 1 || num_threads == max_threads)
+			{
+				cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, Abis, lda_bis, Bbis, ldb_bis, beta, C, ldc);
+				cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, &(Abis[A2]), lda_bis, &(Bbis[B3]), ldb_bis, 1, C, ldc);
+				
+				cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, Abis, lda_bis, &(Bbis[B2]), ldb_bis, beta, &(C[(N/2)*ldc]), ldc);
+				cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, &(Abis[B2]), lda_bis, &(Bbis[B4]), ldb_bis, 1,  &(C[(N/2)*ldc]), ldc);
+				
+				cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, &(Abis[A3]), lda_bis, Bbis, ldb_bis, beta, &(C[M/2]), ldc);
+				cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, &(Abis[A4]), lda_bis, &(Bbis[B3]), ldb_bis, 1,  &(C[M/2]), ldc);
+				
+				cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, &(Abis[A3]), lda_bis, &(Bbis[B2]), ldb_bis, beta, &(C[M/2+(N/2)*ldc]), ldc);
+				cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, &(Abis[A4]), lda_bis, &(Bbis[B4]), ldb_bis, 1,  &(C[M/2+(N/2)*ldc]), ldc);
+			}
+			else
+			{
+				num_threads +=4;
+				struct arg arg_thread;
+				arg_thread.TransA = TransA;
+				arg_thread.TransB = TransB;
+				arg_thread.M = M/2;
+				arg_thread.N = N/2;
+				arg_thread.K = K/2;
+				arg_thread.alpha = alpha;
+				arg_thread.A = Abis;
+				arg_thread.lda = lda_bis;
+				arg_thread.B = Bbis;
+				arg_thread.ldb = ldb_bis;
+				arg_thread.beta = beta;
+				arg_thread.C = C;
+
+				struct arg arg_thread_tmp1 = calloc(1, sizeof(struct arg));
+				memcpy(arg_thread_tmp1, arg_thread, sizeof(struct arg));
+				arg_thread_tmp.A_i1 = 0;
+				arg_thread_tmp.A_i2 = A2;
+				arg_thread_tmp.B_i1 = 0;
+				arg_thread_tmp.B_i2 = B3
+				arg_thread_tmp.C_i = 0;
+
+				pthread_create(&(threads[0]), NULL, execute, arg_thread_tmp1);
+				
+				struct arg arg_thread_tmp2 = calloc(1, sizeof(struct arg));
+				memcpy(arg_thread_tmp2, arg_thread, sizeof(struct arg));
+				arg_thread_tmp2.A_i1 = 0;
+				arg_thread_tmp2.A_i2 = A2;
+				arg_thread_tmp2.B_i1 = B2;
+				arg_thread_tmp2.B_i2 = B4
+				arg_thread_tmp2.C_i = (N/2)*ldc;
+
+				pthread_create(&(threads[1]), NULL, execute, arg_thread_tmp2);
+				
+				struct arg arg_thread_tmp3 = calloc(1, sizeof(struct arg));
+				memcpy(arg_thread_tmp3, arg_thread, sizeof(struct arg));
+				arg_thread_tmp3.A_i1 = A3;
+				arg_thread_tmp3.A_i2 = A4;
+				arg_thread_tmp3.B_i1 = 0;
+				arg_thread_tmp3.B_i2 = B3
+				arg_thread_tmp3.C_i = M/2;
+
+				pthread_create(&(threads[2]), NULL, execute, arg_thread_tmp3);
+				
+				struct arg arg_thread_tmp4 = calloc(1, sizeof(struct arg));
+				memcpy(arg_thread_tmp4, arg_thread, sizeof(struct arg));
+				arg_thread_tmp4.A_i1 = A3;
+				arg_thread_tmp4.A_i2 = A4;
+				arg_thread_tmp4.B_i1 = B2;
+				arg_thread_tmp4.B_i2 = B4
+				arg_thread_tmp4.C_i = M/2+(N/2)*ldc;
+
+				pthread_create(&(threads[3]), NULL, execute, arg_thread_tmp4);
+				
+				pthread_join(threads[0], NULL);
+				pthread_join(threads[1], NULL);
+				pthread_join(threads[2], NULL);
+				pthread_join(threads[3], NULL);
+			}
 		}
 		if(TransA == CblasNoTrans)
 		{
