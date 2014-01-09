@@ -5,7 +5,6 @@
 #include "dgemm.h"
 #include "ddot.h"
 #include "perf.h"
-#include "cblas.h"
 
 int main(int argc, char* argv[])
 {
@@ -25,7 +24,7 @@ int main(int argc, char* argv[])
 	double mflops;
 	char command[200];
 
-	for(size = 5; size2 < 10000000; size += size *25/100)
+	for(size = 5; size2 < 10; size += size *25/100)
 	{
 		printf("size2: %d\n", size2);
 		if(size != 5)
@@ -44,12 +43,12 @@ int main(int argc, char* argv[])
 		long time = t2->tv_usec + ( t2->tv_sec * 1000000);
 		if(size2==25) //ecrasement si fichier existe deja
 		{
-			sprintf(command, "echo %ld %d > results/ddot_perf.txt", time, size2);	
+			sprintf(command, "echo %d %ld > results/ddot_perf.txt", size2, time);	
 			system(command);
 		}
 		else //concatenation des donnees
 		{
-			sprintf(command, "echo %ld %d >> results/ddot_perf.txt", time, size2);	
+			sprintf(command, "echo %d %ld >> results/ddot_perf.txt", size2, time);	
 			system(command);	
 		}
 		
@@ -81,38 +80,33 @@ int main(int argc, char* argv[])
 		}
 		
 		perf(t1);
-		cblas_dgemm(m, n, k, 1, matriceA, m, matriceB, n, 1, matriceC, m);
+		cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans ,m, n, k, 1, matriceA, m, matriceB, k, 1, matriceC, m);
 		perf(t2);
 		perf_diff(t1, t2);
 		
 		mflops = perf_mflops(t2, size2);
 		long time = t2->tv_usec + ( t2->tv_sec * 1000000);
 		
-		if(size2==25) //ecrasement si fichier existe deja
+		size2 = m*n;
+		if(size2 == 2500) //ecrasement si fichier existe deja
 		{
-			sprintf(command, "echo %ld %d > results/dgemm_perf.txt", time, size2);	
+			
+			sprintf(command, "echo %d %ld > results/dgemm_perf.txt",size2, time);	
 			system(command);
 		}
 		else //concatenation des donnees
 		{
-			sprintf(command, "echo %ld %d >> results/dgemm_perf.txt", time, size2);	
+			sprintf(command, "echo %d %ld >> results/dgemm_perf.txt",size2, time);	
 			system(command);	
 		}
 		
 	}
 	printf("Mflops/s: %le\n", mflops);
-		
-	}	
-	
-	
-
-
 
 	free(matriceA);
 	free(matriceB);
 	free(matriceC);
 	free(matriceD);
 	free(matriceE);
-	free(vecteur);
 	return EXIT_SUCCESS;
 }
