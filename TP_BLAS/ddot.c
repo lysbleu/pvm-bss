@@ -1,7 +1,7 @@
 #include "ddot.h"
 
 
-blas_t ddot(const int N, const blas_t *X, const int incX,
+blas_t cblas_ddot(const int N, const blas_t *X, const int incX,
                   const blas_t *Y, const int incY)
 {
 	
