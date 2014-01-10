@@ -1,8 +1,8 @@
 # Fichier temporaire pour gnuplot
 set size ratio -1
 set terminal pngcairo enhanced size 1000,650
-set output 'plot.png'
-set xlabel "Temps d'éxéction du produit scalaire (us)"
-set ylabel "Taille des vecteurs"
+set output 'plot_ddot.png'
+set xlabel "Temps d'éxéction du produit matriciel (us)"
+set ylabel "Taille des matrices (m * n)"
 plot "ddot_perf.txt" using 1:2 title "ddot_perf.txt" with lines,\
 "dgemm_perf.txt" using 1:2 title "dgemm_perf.txt" with lines
