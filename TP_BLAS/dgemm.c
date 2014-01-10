@@ -148,7 +148,7 @@ void cblas_dger(const enum CBLAS_ORDER order, const int M, const int N,
 void *execute(void *arg_)
 {
 	struct arg *argument = arg_;
-	if(num_threads == max_threads)
+	if(num_threads >= max_threads || argument->M<4 || argument->K<4 || argument->N<4 )
 	{
 		cblas_dgemm_scalaire(argument->TransA, argument->TransB, argument->M, argument->N, argument->K, argument->alpha, &((argument->A)[argument->A_i1]), argument->lda, &((argument->B)[argument->B_i1]), argument->ldb, argument->beta, &((argument->C)[argument->C_i]), argument->ldc);
 		cblas_dgemm_scalaire(argument->TransA, argument->TransB, argument->M, argument->N, argument->K, argument->alpha, &((argument->A)[argument->A_i2]), argument->lda, &((argument->B)[argument->B_i2]), argument->ldb, 1, &((argument->C)[argument->C_i]), argument->ldc);
@@ -231,12 +231,11 @@ void *execute(void *arg_)
 		pthread_join(threads[1], NULL);
 		pthread_join(threads[2], NULL);
 		pthread_join(threads[3], NULL);
-		
-		pthread_mutex_lock(&lock);
-		num_threads -=1;
-		pthread_mutex_unlock(&lock);
 
 	}
+	pthread_mutex_lock(&lock);
+	num_threads -=1;
+	pthread_mutex_unlock(&lock);
 	
 	return NULL;
 }
@@ -316,7 +315,7 @@ void cblas_dgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA
 				B4=(K/2)+(N/2)*ldb;
 			}
 				
-			if(num_threads == 1 || num_threads == max_threads)
+			if(num_threads == 1 || num_threads == max_threads || M<4 || K<4 || N<4)
 			{
 				cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, Abis, lda_bis, Bbis, ldb_bis, beta, C, ldc);
 				cblas_dgemm_scalaire(TransA, TransB, M/2, N/2, K/2, alpha, &(Abis[A2]), lda_bis, &(Bbis[B3]), ldb_bis, 1, C, ldc);
