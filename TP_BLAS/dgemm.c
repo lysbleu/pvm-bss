@@ -181,9 +181,6 @@ void *execute(void *arg_)
 		struct arg arg_thread;
 		arg_thread.TransA = argument->TransA;
 		arg_thread.TransB = argument->TransB;
-		//~ arg_thread.M = argument->M/2;
-		//~ arg_thread.N = argument->N/2;
-		//~ arg_thread.K = argument->K/2;
 		arg_thread.alpha = argument->alpha;
 		arg_thread.A = argument->A;
 		arg_thread.lda = argument->lda;
