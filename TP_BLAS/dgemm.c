@@ -162,10 +162,10 @@ void *execute(void *arg_)
 	}
 	else
 	{
-		pthread_t threads[4];
-		int A2,A3,A4,B2, B3, B4, lda_bis, ldb_bis;  
+		pthread_t threads[8];
+		int A2,A3,A4,B2, B3, B4, lda_bis, ldb_bis,i;  
 		pthread_mutex_lock(&lock);
-		num_threads +=3;
+		num_threads +=7;
 		pthread_mutex_unlock(&lock);
 
 		lda_bis = argument->lda;
@@ -320,11 +320,10 @@ void *execute(void *arg_)
 
 		pthread_create(&(threads[7]), NULL, execute, arg_thread_tmp8);		
 		
-		pthread_join(threads[0], NULL);
-		pthread_join(threads[1], NULL);
-		pthread_join(threads[2], NULL);
-		pthread_join(threads[3], NULL);
-
+		for (i=0; i<8; i++)
+		{
+			pthread_join(threads[i], NULL);
+		}
 	}
 	
 	return NULL;
