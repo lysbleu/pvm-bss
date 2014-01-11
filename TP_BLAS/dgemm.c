@@ -7,6 +7,7 @@ int num_threads = 1;
 
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
+// dgemm scalaire, ordre des boucles k i j
 void cblas_dgemm_scalaire1(blas_t *C,int ldc, blas_t *A,int lda,  blas_t *B,
                            int ldb, int m)
 {
@@ -18,11 +19,12 @@ void cblas_dgemm_scalaire1(blas_t *C,int ldc, blas_t *A,int lda,  blas_t *B,
             for(j=0; j<m; j++)
             {	
                 C[j*ldc+i] += A[k+i*lda]*B[k+j*ldb];
-            }
+            } 
         }
     }
 }
 
+// dgemm scalaire, ordre des boucles i j k
 void cblas_dgemm_scalaire2(blas_t *C,int ldc, blas_t *A,int lda,  blas_t *B,
                            int ldb, int m)
 {
@@ -39,6 +41,7 @@ void cblas_dgemm_scalaire2(blas_t *C,int ldc, blas_t *A,int lda,  blas_t *B,
     }
 }
 
+// dgemm scalaire, ordre des boucles j i k
 void cblas_dgemm_scalaire3(blas_t *C,int ldc, blas_t *A,int lda,  blas_t *B,
                            int ldb, int m)
 {
@@ -51,10 +54,11 @@ void cblas_dgemm_scalaire3(blas_t *C,int ldc, blas_t *A,int lda,  blas_t *B,
             {	
                 C[j*ldc+i] += A[k+i*lda]*B[k+j*ldb];
             }
-        }
+        } 
     }
 }
 
+// dgemm scalaire, respectant le prototype cblas
 void cblas_dgemm_scalaire(const enum CBLAS_TRANSPOSE TransA,
                  const enum CBLAS_TRANSPOSE TransB, const int M, const int N,
                  const int K, const blas_t alpha, const blas_t *A,
@@ -71,19 +75,6 @@ void cblas_dgemm_scalaire(const enum CBLAS_TRANSPOSE TransA,
 			for(k=0; k<K; k++)
 			{	
 				C[j*ldc+i]+=alpha*A[k+i*lda]*B[k+j*ldb];
-                //~ C[j*ldc+i] += alpha*A[k+i*lda]*B[k+j*ldb];
-				//~ if((TransA != CblasNoTrans) && (TransB != CblasTrans))
-				//~ {
-					//~ C[j*ldc+i] += alpha*A[k*lda+i]*B[k+j*ldb];
-				//~ }
-				//~ else if(TransA != CblasNoTrans)
-				//~ {
-					//~ C[j*ldc+i] += alpha*A[k+i*lda]*B[k+j*ldb];
-				//~ }
-				//~ else
-				//~ {
-					//~ C[j*ldc+i] += alpha*A[k*lda+i]*B[k*ldb+j];
-				//~ }
 			}
 		}
 	}
@@ -143,14 +134,16 @@ void cblas_dger(const enum CBLAS_ORDER order, const int M, const int N,
 		}
 	}
 	else
-	{
+  	{
 		printf("cblas_dger : Only CblasColMajor is allowed\n"); 
 	}
 }
 
+//fonction appelée par les threads pour la version par bloc de dgemm
 void *execute(void *arg_)
 {
 	struct arg *argument = arg_;
+	//nombre de threads créés déjà important
 	if(num_threads >= max_threads || argument->M1==1 || argument->K1==1 || argument->N1==1  || argument->M2==1 || argument->K2==1 || argument->N2==1 )
 	{
 		cblas_dgemm_scalaire(argument->TransA, argument->TransB, argument->M1, argument->N1, argument->K1, argument->alpha, &((argument->A)[argument->A_i1]), argument->lda, &((argument->B)[argument->B_i1]), argument->ldb, argument->beta, &((argument->C)[argument->C_i]), argument->ldc);
@@ -160,14 +153,16 @@ void *execute(void *arg_)
 		num_threads -=1;
 		pthread_mutex_unlock(&lock);
 	}
-	else
-	{
+	else //encore possible de créer des threads
+	{ 
 		pthread_t threads[8];
 		int A2,A3,A4,B2, B3, B4, lda_bis, ldb_bis,i;  
+		
 		pthread_mutex_lock(&lock);
 		num_threads +=7;
 		pthread_mutex_unlock(&lock);
 
+		//préparation des arguments pour les threads
 		lda_bis = argument->lda;
 		A2=(argument->K/2+argument->K%2)*argument->lda;
 		A3=(argument->M/2+argument->M%2);
@@ -189,6 +184,7 @@ void *execute(void *arg_)
 		arg_thread.beta = argument->beta;
 		arg_thread.C = argument->C;
 
+		//création des 8 threads (4 par produit matriciel)
 		struct arg *arg_thread_tmp1 = calloc(1, sizeof(struct arg));
 		memcpy(arg_thread_tmp1, &arg_thread, sizeof(struct arg));
 		arg_thread_tmp1->A_i1 = 0;
@@ -314,13 +310,21 @@ void *execute(void *arg_)
 		arg_thread_tmp8->M2 = argument->M2/2;
 		arg_thread_tmp8->N2 = argument->N2/2;
 		arg_thread_tmp8->K2 = argument->K2/2;
-
+		
 		pthread_create(&(threads[7]), NULL, execute, arg_thread_tmp8);		
 		
 		for (i=0; i<8; i++)
 		{
 			pthread_join(threads[i], NULL);
 		}
+		free(arg_thread_tmp1);
+		free(arg_thread_tmp2);
+		free(arg_thread_tmp3);
+		free(arg_thread_tmp4);
+		free(arg_thread_tmp5);
+		free(arg_thread_tmp6);
+		free(arg_thread_tmp7);
+		free(arg_thread_tmp8);
 	}
 	
 	return NULL;
@@ -499,6 +503,11 @@ void cblas_dgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA
 				pthread_join(threads[1], NULL);
 				pthread_join(threads[2], NULL);
 				pthread_join(threads[3], NULL);
+				
+				free(arg_thread_tmp1);
+				free(arg_thread_tmp2);
+				free(arg_thread_tmp3);
+				free(arg_thread_tmp4);
 			}
 		}
 		if(TransA == CblasNoTrans)
