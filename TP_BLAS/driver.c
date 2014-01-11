@@ -67,22 +67,20 @@ int main(int argc, char* argv[])
 
 //////////////////////////////////////////
 
-	long m = 4;
+	long m = 100;
 
 	
 	blas_t *matriceA, *matriceB, *matriceC;
 	
 	alloc_matrice(&matriceA, m, m);
 	alloc_matrice(&matriceB, m, m);
-        C = calloc(m*m*sizeof(blas_t));
+        matriceC = calloc(m*m,sizeof(blas_t));
         system("rm results/dgemm_perf.txt");
 
-	for(; m< 1000; m+=100)
+	for(; m< 1000; m+=20)
 	{
             printf("M: %d ", m);
-            affiche(m, m, matriceA, m, stdout);
-            affiche(m,m,matriceB,m,stdout);
-
+        
 		if(m != 100)
 		{
 			free(matriceA);
@@ -97,7 +95,7 @@ int main(int argc, char* argv[])
                 cblas_dgemm_scalaire( CblasNoTrans, CblasNoTrans ,m, m, m, 1, matriceA, m, matriceB, m, 1, matriceC, m);
 		perf(t2);
 		perf_diff(t1, t2);
-                mflops1 = perf_mflops(t2, m * m * m * 3 + m * m + m*m);
+                mflops1 = perf_mflops(t2, m * m * m * 3 + m * m );
                 printf("Mflops/s: %le\n", mflops);
                 
         
@@ -108,17 +106,17 @@ int main(int argc, char* argv[])
         
         
                 
-                mflops2 = perf_mflops(t4, m * m * m * 3 + m * m);
+                mflops2 = perf_mflops(t4, m * m * m * 3);
               	perf(t5);
 		cblas_dgemm_scalaire2(matriceC, m, matriceA, m, matriceB, m,  m);
 		perf(t6);
 		perf_diff(t5, t6);
-                mflops3 = perf_mflops(t6, m * m * m * 3 + m * m);
+                mflops3 = perf_mflops(t6, m * m * m * 3);
                 perf(t7);
 		cblas_dgemm_scalaire3(matriceC, m, matriceA, m, matriceB, m,  m);
 		perf(t8);
 		perf_diff(t7, t8);
-                mflops4 = perf_mflops(t8, m * m * m * 3 + m * m);
+                mflops4 = perf_mflops(t8, m * m * m * 3);
 					
                 sprintf(command, "echo %d %lf %lf %lf %lf  >> results/dgemm_perf.txt", m * m, mflops1, mflops2, mflops3, mflops4);	
                 system(command);

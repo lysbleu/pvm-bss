@@ -1,5 +1,6 @@
-DEBUG=yes
+DEBUG=no
 CC=gcc
+
 ifeq ($(DEBUG),yes)
 	CFLAGS=-W -Wall -Wextra -ansi -pedantic -g -std=c99
 	LDFLAGS= -lpthread
@@ -12,14 +13,17 @@ SRC= $(wildcard *.c)
 OBJ= $(SRC:.c=.o)
 
 all: $(EXEC)
-ifeq ($(DEBUG),yes)
-	@echo "Génération en mode debug"
-else
-	@echo "Génération en mode release"
-endif
+	ifeq ($(DEBUG),yes)
+		echo "Génération en mode debug"
+	else	
+		echo "Génération en mode release"
+	endif
 
 driver: $(OBJ)
 	@$(CC) -o $@ $^ $(LDFLAGS)
+
+blas1: perf.o driver.o ddot.o dgemm.o util.o
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 util.o:util.c util.h 
 	@$(CC) -o $@ -c $< $(CFLAGS)
