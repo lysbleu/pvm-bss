@@ -50,7 +50,13 @@ Les matrices sont stockées sous forme de tableaux, les n premier éléments for
 
 
 \section{Version parallèle}
+Notre approche de la parallélisation de l'algorithme de dgemm a été la suivante : nous découpons la matrice en quatre blocs les plus égaux possibles, et attribuons un thread par bloc.
+Ensuite, de manière récursive chaque thread effectue à nouveau ce découpage, tant que le nombre de threads actifs est inférieur aux nombres de blocs. 
+Quand le nombre de threads atteint la valeur de la variable d'environnement, ils appellent la version scalaire de dgemm, afin d'effectuer les calculs.
+De plus, afin de limiter l'influence de l'utilisation des verrous (mutex), nous ne l'utilisons pas en lecture, mais seulement en écriture. 
+Ainsi, il est possible que la création de threads soit plus importante que prévue, mais cela devrait être négligeable comparativement à la prise d'un verrou.
 
+Les performances
 \section{Conclusion}
 
 
