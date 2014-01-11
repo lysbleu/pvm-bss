@@ -2,7 +2,7 @@
 command -v sponge >/dev/null 2>&1 || { echo >&2 "Il faut installer moreutils" ; exit 1; }
 command -v gnuplot >/dev/null 2>&1 || { echo >&2 "Il faut installer gnuplot"; exit 1; }
 echo "# Fichier temporaire pour gnuplot" > plot_ddot
-#echo "set logscale x" >> plot_ddot
+echo "set logscale x" >> plot_ddot
 #~ echo "set size ratio -1" >> plot_ddot
 #~ echo "set size square" >> plot_ddot
 echo "set terminal pngcairo enhanced size 1000,650" >> plot_ddot
