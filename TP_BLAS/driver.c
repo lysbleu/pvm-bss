@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 
 	double mflops, mflops1,mflops2,mflops3,mflops4, mflops5;
 	char command[200];
-        goto a;
+
         system("rm results/ddot_perf.txt");
 	for(size = 50; size < 100000000; size += size/4)
 	{
@@ -63,7 +63,6 @@ int main(int argc, char* argv[])
 		perf_diff(t1, t2);
 		mflops = perf_mflops(t2, 2 * size);
                 printf("Mflops/s: %le\n", mflops);
-		long time = t2->tv_usec + ( t2->tv_sec * 1000000);
 
                 sprintf(command, "echo %d %lf >> results/ddot_perf.txt", size, mflops);	
                 system(command);
@@ -73,7 +72,7 @@ int main(int argc, char* argv[])
 
 // Test de performance dgemm
 //////////////////////////////////////////
-a:;
+
 	long m = 100;
 
 	
