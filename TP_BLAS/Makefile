@@ -5,24 +5,19 @@ ifeq ($(DEBUG),yes)
 	CFLAGS=-W -Wall -Wextra -ansi -pedantic -g -std=c99
 	LDFLAGS= -lpthread
 else
-	CFLAGS=-W -Wall -Wextra	-O3 -ansi -pedantic -std=c99
+	CFLAGS=-W -Wall -Wextra	-O2 -ansi -pedantic -std=c99
 	LDFLAGS= -lpthread
 endif
 EXEC=driver
 SRC= $(wildcard *.c)
 OBJ= $(SRC:.c=.o)
 
-all: $(EXEC)
-	ifeq ($(DEBUG),yes)
-		echo "Génération en mode debug"
-	else	
-		echo "Génération en mode release"
-	endif
+all: blas
 
 driver: $(OBJ)
 	@$(CC) -o $@ $^ $(LDFLAGS)
 
-blas1: perf.o driver.o ddot.o dgemm.o util.o
+blas: perf.o driver.o ddot.o dgemm.o util.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 util.o:util.c util.h 
