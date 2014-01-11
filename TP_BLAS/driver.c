@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
 	alloc_vecteur(&matriceE, size);
 
 	printf("Tests de performance de la fonction ddot\n");
-	perf_t *t1, *t2,*t3, *t4,*t5, *t6,*t7, *t8;
+	perf_t *t1, *t2,*t3, *t4,*t5, *t6,*t7, *t8, *t9, *t10;
 	t1 = malloc(sizeof(perf_t));
 	t2 = malloc(sizeof(perf_t));
         t3 = malloc(sizeof(perf_t));
@@ -35,10 +35,13 @@ int main(int argc, char* argv[])
 	t6 = malloc(sizeof(perf_t));
         t7 = malloc(sizeof(perf_t));
 	t8 = malloc(sizeof(perf_t));
+        t9 = malloc(sizeof(perf_t));
+	t10 = malloc(sizeof(perf_t));
         
 
-	double mflops, mflops1,mflops2,mflops3,mflops4;
+	double mflops, mflops1,mflops2,mflops3,mflops4, mflops5;
 	char command[200];
+        goto a;
         system("rm results/ddot_perf.txt");
 	for(size = 50; size < 100000000; size += size/4)
 	{
@@ -66,7 +69,7 @@ int main(int argc, char* argv[])
 
 // Test de performance dgemm
 //////////////////////////////////////////
-
+a:;
 	long m = 100;
 
 	
@@ -96,7 +99,7 @@ int main(int argc, char* argv[])
 		perf(t2);
 		perf_diff(t1, t2);
                 mflops1 = perf_mflops(t2, m * m * m * 3 + m * m );
-                printf("Mflops/s: %le\n", mflops);
+
                 
         
 		perf(t3);
@@ -117,11 +120,18 @@ int main(int argc, char* argv[])
 		perf(t8);
 		perf_diff(t7, t8);
                 mflops4 = perf_mflops(t8, m * m * m * 3);
-					
-                sprintf(command, "echo %d %lf %lf %lf %lf  >> results/dgemm_perf.txt", m * m, mflops1, mflops2, mflops3, mflops4);	
+                
+                perf(t9);
+		cblas_dgemm(CblasColMajor, CblasTrans, CblasNoTrans, m, m,m, 1, matriceA, m, matriceB, m, 1, matriceC, m);
+		perf(t10);
+		perf_diff(t9, t10);
+                mflops5 = perf_mflops(t10, m * m * m * 3);
+                
+                sprintf(command, "echo %d %lf %lf %lf %lf %lf >> results/dgemm_perf.txt", m * m, mflops1, mflops2, mflops3, mflops4, mflops5);	
                 system(command);
+                printf("Mflops/s : %d %lf %lf %lf %lf %lf\n", m * m, mflops1, mflops2, mflops3, mflops4, mflops5 );
 	}
-	printf("Mflops/s: %le\n", mflops);
+
 
 	free(matriceA);
 	free(matriceB);

@@ -156,7 +156,7 @@ void *execute(void *arg_)
 	else //encore possible de créer des threads
 	{ 
 		pthread_t threads[8];
-		int A2,A3,A4,B2, B3, B4, lda_bis, ldb_bis,i;  
+		int A2,A2_2,A3, A3_2,A4, A4_2,B2,B2_2, B3, B3_2, B4, B4_2, lda_bis, ldb_bis,i;  
 		
 		pthread_mutex_lock(&lock);
 		num_threads +=7;
@@ -164,15 +164,22 @@ void *execute(void *arg_)
 
 		//préparation des arguments pour les threads
 		lda_bis = argument->lda;
-		A2=(argument->K/2+argument->K%2)*argument->lda;
-		A3=(argument->M/2+argument->M%2);
-		A4=(argument->K/2+argument->K%2)*argument->lda+(argument->M/2+argument->M%2);
+		A2=(argument->K1/2+argument->K1%2)*argument->lda;
+		A3=(argument->M1/2+argument->M1%2);
+		A4=(argument->K1/2+argument->K1%2)*argument->lda+(argument->M1/2+argument->M1%2);
+                A2_2=(argument->K2/2+argument->K2%2)*argument->lda;
+                A3_2=(argument->M2/2+argument->M2%2);
+		A4_2=(argument->K2/2+argument->K2%2)*argument->lda+(argument->M2/2+argument->M2%2);
 		
 		ldb_bis = argument->ldb;
-		B2=(argument->N/2+argument->N%2)*argument->ldb;
-		B3=(argument->K/2+argument->K%2);
-		B4=(argument->K/2+argument->K%2)+(argument->N/2+argument->N%2)*argument->ldb;
-		
+		B2=(argument->N1/2+argument->N1%2)*argument->ldb;
+		B3=(argument->K1/2+argument->K1%2);
+		B4=(argument->K1/2+argument->K1%2)+(argument->N1/2+argument->N1%2)*argument->ldb;
+                
+                B2_2=(argument->N2/2+argument->N2%2)*argument->ldb;
+                B3_2=(argument->K2/2+argument->K2%2);
+		B4_2=(argument->K2/2+argument->K2%2)+(argument->N2/2+argument->N2%2)*argument->ldb;
+
 		struct arg arg_thread;
 		arg_thread.TransA = argument->TransA;
 		arg_thread.TransB = argument->TransB;
@@ -183,7 +190,7 @@ void *execute(void *arg_)
 		arg_thread.ldb = argument->ldb;
 		arg_thread.beta = argument->beta;
 		arg_thread.C = argument->C;
-
+                arg_thread.ldc = argument->ldc;
 		//création des 8 threads (4 par produit matriciel)
 		struct arg *arg_thread_tmp1 = calloc(1, sizeof(struct arg));
 		memcpy(arg_thread_tmp1, &arg_thread, sizeof(struct arg));
@@ -252,9 +259,9 @@ void *execute(void *arg_)
 		struct arg *arg_thread_tmp5 = calloc(1, sizeof(struct arg));
 		memcpy(arg_thread_tmp5, &arg_thread, sizeof(struct arg));
 		arg_thread_tmp5->A_i1 = 0;
-		arg_thread_tmp5->A_i2 = A2;
+		arg_thread_tmp5->A_i2 = A2_2;
 		arg_thread_tmp5->B_i1 = 0;
-		arg_thread_tmp5->B_i2 = B3;
+		arg_thread_tmp5->B_i2 = B3_2;
 		arg_thread_tmp5->C_i = 0;
 		arg_thread_tmp5->M1 = argument->M2/2+argument->M2%2;
 		arg_thread_tmp5->N1 = argument->N2/2+argument->N2%2;
@@ -268,9 +275,9 @@ void *execute(void *arg_)
 		struct arg *arg_thread_tmp6 = calloc(1, sizeof(struct arg));
 		memcpy(arg_thread_tmp6, &arg_thread, sizeof(struct arg));
 		arg_thread_tmp6->A_i1 = 0;
-		arg_thread_tmp6->A_i2 = A2;
-		arg_thread_tmp6->B_i1 = B2;
-		arg_thread_tmp6->B_i2 = B4;
+		arg_thread_tmp6->A_i2 = A2_2;
+		arg_thread_tmp6->B_i1 = B2_2;
+		arg_thread_tmp6->B_i2 = B4_2;
 		arg_thread_tmp6->C_i = (argument->N2/2)*argument->ldc;
 		arg_thread_tmp6->M1 = argument->M2/2+argument->M2%2;
 		arg_thread_tmp6->N1 = argument->N2/2;
@@ -283,10 +290,10 @@ void *execute(void *arg_)
 		
 		struct arg *arg_thread_tmp7 = calloc(1, sizeof(struct arg));
 		memcpy(arg_thread_tmp7, &arg_thread, sizeof(struct arg));
-		arg_thread_tmp7->A_i1 = A3;
-		arg_thread_tmp7->A_i2 = A4;
+		arg_thread_tmp7->A_i1 = A3_2;
+		arg_thread_tmp7->A_i2 = A4_2;
 		arg_thread_tmp7->B_i1 = 0;
-		arg_thread_tmp7->B_i2 = B3;
+		arg_thread_tmp7->B_i2 = B3_2;
 		arg_thread_tmp7->C_i = argument->M2/2;
 		arg_thread_tmp7->M1 = argument->M2/2;
 		arg_thread_tmp7->N1 = argument->N2/2+argument->N2%2;
@@ -299,10 +306,10 @@ void *execute(void *arg_)
 		
 		struct arg *arg_thread_tmp8 = calloc(1, sizeof(struct arg));
 		memcpy(arg_thread_tmp8, &arg_thread, sizeof(struct arg));
-		arg_thread_tmp8->A_i1 = A3;
-		arg_thread_tmp8->A_i2 = A4;
-		arg_thread_tmp8->B_i1 = B2;
-		arg_thread_tmp8->B_i2 = B4;
+		arg_thread_tmp8->A_i1 = A3_2;
+		arg_thread_tmp8->A_i2 = A4_2;
+		arg_thread_tmp8->B_i1 = B2_2;
+		arg_thread_tmp8->B_i2 = B4_2;
 		arg_thread_tmp8->C_i = argument->M2/2+(argument->N2/2)*argument->ldc;
 		arg_thread_tmp8->M1 = argument->M2/2;
 		arg_thread_tmp8->N1 = argument->N2/2;
@@ -434,7 +441,7 @@ void cblas_dgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA
 				arg_thread.ldb = ldb_bis;
 				arg_thread.beta = beta;
 				arg_thread.C = C;
-
+                                arg_thread.ldc = ldc;
 				struct arg *arg_thread_tmp1 = calloc(1, sizeof(struct arg));
 				memcpy(arg_thread_tmp1, &arg_thread, sizeof(struct arg));
 				arg_thread_tmp1->A_i1 = 0;
@@ -514,7 +521,7 @@ void cblas_dgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA
 		{
 			free(Abis);
 		}
-		if(TransA == CblasTrans)
+		if(TransB == CblasTrans)
 		{
 			free(Bbis);
 		}

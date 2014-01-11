@@ -11,9 +11,6 @@ enum  	CBLAS_SIDE { CblasLeft = 141, CblasRight = 142 };
 struct arg{
 	enum CBLAS_TRANSPOSE TransA;
 	enum CBLAS_TRANSPOSE TransB;
-	int M;
-	int N;
-	int K;
 	int alpha;
 	blas_t *A;
 	blas_t lda;
@@ -30,7 +27,7 @@ struct arg{
 	int M1;
 	int M2;
 	int N1;
-	int N2;
+    int N2;
 	int K1;
 	int K2;
 };
