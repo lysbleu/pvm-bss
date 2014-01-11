@@ -15,8 +15,11 @@
 
 #include "perf.h"
 
+#define L2_CACHE_SIZE 8192
+
 int main(int argc, char* argv[])
 {
+	char dummy[L2_CACHE_SIZE];
 	
 // Tests de performances de ddot	
 	int size = 50;
@@ -50,6 +53,7 @@ int main(int argc, char* argv[])
 			alloc_vecteur(&matriceD, size);
 			alloc_vecteur(&matriceE, size);
 		}
+		memset(dummy, 0, sizeof dummy);
 		perf(t1);
 		blas_t res = cblas_ddot(size, matriceD, 1, matriceE, 1);
 		perf(t2);
@@ -91,8 +95,9 @@ int main(int argc, char* argv[])
 			alloc_matrice(&matriceC, m, m);
 		}
         
-                perf(t1);
-                cblas_dgemm_scalaire( CblasNoTrans, CblasNoTrans ,m, m, m, 1, matriceA, m, matriceB, m, 1, matriceC, m);
+        memset(dummy, 0, sizeof dummy);
+		perf(t1);
+        cblas_dgemm_scalaire( CblasNoTrans, CblasNoTrans ,m, m, m, 1, matriceA, m, matriceB, m, 1, matriceC, m);
 		perf(t2);
 		perf_diff(t1, t2);
                 mflops1 = perf_mflops(t2, m * m * m * 3 + m * m );
