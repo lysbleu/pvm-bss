@@ -45,9 +45,20 @@ BLAS (Basic Linear Algebra Subprograms) est un ensemble de fonctions permettant 
 
 \section{Version séquentielle}
 L'objectif de ce premier TP était d'implémenter les birques de base d'une bibliothèque d'algèbre linéaire. Nous avons donc commencé par coder une opération de type BLAS 1, le produits scalaire. Et un produit matriciel qui est de type BLAS 3.
-Dans les bibliothèques d'algèbre linéaire, les routines de type BLAS 1 correspondent à un produit vecteur-vecteur, les BLAS 2, à un produit matrice-vecteur et le BLAS 3 à un produit matrice-matrice. Il ont respectivement une complexité en O(n), O(n²), et O(n³), n étant la traille d'un vecteur ou d'une matrice.
+Dans les bibliothèques d'algèbre linéaire, les routines de type BLAS 1 correspondent à un produit vecteur-vecteur, les BLAS 2, à un produit matrice-vecteur et le BLAS 3 à un produit matrice-matrice. Il ont respectivement une complexité en $O(n)$, $O(n²)$, et $O(n³)$, $n$ étant la traille d'un vecteur ou d'une matrice.
 Les matrices sont stockées sous forme de tableaux, les n premier éléments formant la première colonne. De plus, pour toutes les fonctions de type BLAS, on donne les dimensions de la matrice (ou du vecteur) ainsi qu'un pas ($leading dimension$) entre les premiers éléments de chaque colonne. Cela permet de pouvoir donner en paramètre l'adresse de début de la zone mémoire où est stockée la matrice, tout en pouvant extraire des sous matrices.
 
+La première routine étudiée en détail est la fonction $ddot$ qui effectue le produit scalaire de deux vecteurs. Cette routine effectue $n$ opérations flotantes et 2n+1. Nous avons donc comparé les performances de notre produit scalaire avec l'implémentation de la bibliothèque MKL:
+%%% INCLURE GRAPHIQUE ICI
+
+Pour tenter d'obtenirune mesure des performance la plus précise et cohérente possible, nous avons tenté de faire en sorte que toutes les données des matrices doivent être chargées dans le cache pendant la mesure des performances. Il s'agissait donc ainsi de remplir le cache avant de lancer notre produit vectoriel, afin de prendre en compte le temps de chargement des données depuis la mémoire. Le cache L2 du Xéon 5570 sur lequel nous effectuons les test étant de 8 $Mbytes$, nous avons utilisé la fonction $memset$ pour remplir un zone mémoire de la même taille et donc essayer de $flusher$ le cache avant chaque performance. Malgrès tout, ce choix n'est pas forcément le plus optimal car certains compilateurs détectent ce type de procédure et peuvent effectuer des optimisations pour ne pas charger la mémoire dans le cache.
+
+
+La deuxième routine étudiée en détail est la fonction $dgemm$ qui effectue un produit matriciel. La première implémentation concernait simplement la version séquentielle du produit matriciel. Trois versions ont été testées, car cette fonction contient en réalité trois boucles $for$ imbriquées (complexité du produit matriciel: $n³$), chacune correspondant à un indice different de la formule du produit matriciel. Après avoir comparé entre elle les trois versions sur des tailles de matrice différentes, nous avons donc choisi la plus performante (j, i, k) pour une comparaison avec MKL:
+
+%%% INCLURE GRAPHIQUE ICI
+
+Concernant le pic théorique de performance du processeur Xeon 5570, en terme d'opération flotantes secondes, nous avons calculé qu'il était de l'ordre de $12,8 * nb_pipelines$. Nous arrivons, avec notre implémentaion à des pics de l'ordre de %%rajouter ici nos meilleurs perf crète
 
 \section{Version parallèle}
 Notre approche de la parallélisation de l'algorithme de dgemm a été la suivante : nous découpons la matrice en quatre blocs les plus égaux possibles, et attribuons un thread par bloc.
