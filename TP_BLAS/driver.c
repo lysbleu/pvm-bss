@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
 			alloc_vecteur(&matriceD, size);
 			alloc_vecteur(&matriceE, size);
 		}
-		memset(dummy, 0, sizeof dummy);
+		memset(dummy, 0, sizeof(dummy));
 		perf(t1);
 		blas_t res = cblas_ddot(size, matriceD, 1, matriceE, 1);
 		perf(t2);
@@ -98,7 +98,7 @@ a:;
 			alloc_matrice(&matriceC, m, m);
 		}
         
-        memset(dummy, 0, sizeof dummy);
+        memset(dummy, 0, sizeof(dummy));
 		perf(t1);
         cblas_dgemm_scalaire( CblasNoTrans, CblasNoTrans ,m, m, m, 1, matriceA, m, matriceB, m, 1, matriceC, m);
 		perf(t2);
