@@ -56,8 +56,12 @@ Quand le nombre de threads atteint la valeur de la variable d'environnement, ils
 De plus, afin de limiter l'influence de l'utilisation des verrous (mutex), nous ne l'utilisons pas en lecture, mais seulement en écriture. 
 Ainsi, il est possible que la création de threads soit plus importante que prévue, mais cela devrait être négligeable comparativement à la prise d'un verrou.
 
-Les performances
+Les performances de notre dgemm parallèle sont meilleures que celle non-parallèle, même si moins régulières, ainsi que visible sur le thread.
 \section{Conclusion}
 
+Comme nous avons pu le constater, les performances dépendent largement de l'architecture, c'est-à-dire nombre de processeurs, taille du cache, .... 
+Par ailleurs, nous avons aussi pu constaté qu'avec notre version, il nous était impossible d'approcher des performances crêtes théoriques du processeur. 
+De plus, de simple détails dans le code (ordre des boucles, ...) peuvent dramatiquement faire varier les performances, selon si les accès mémoires sont contigues ou non.
+Enfin, nous regrettons notre impossibilité de comparer nos résultats avec MKL, que nous n'avons pu faire fonctionner sur PLAFRIM avec le compilateur icc, nous ignorons pourquoi.
 
 \end{document}
