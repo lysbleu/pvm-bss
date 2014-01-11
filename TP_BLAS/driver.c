@@ -19,102 +19,109 @@ int main(int argc, char* argv[])
 {
 	
 // Tests de performances de ddot	
-	int size = 5;
-	int size2 = size*size;
+	int size = 50;
 
 	blas_t *matriceD, *matriceE;
-	alloc_matrice(&matriceD, size, size);
-	alloc_matrice(&matriceE, size, size);
+	alloc_vecteur(&matriceD, size);
+	alloc_vecteur(&matriceE, size);
 
 	printf("Tests de performance de la fonction ddot\n");
-	perf_t *t1, *t2;
+	perf_t *t1, *t2,*t3, *t4,*t5, *t6,*t7, *t8;
 	t1 = malloc(sizeof(perf_t));
 	t2 = malloc(sizeof(perf_t));
-	double mflops;
-	char command[200];
+        t3 = malloc(sizeof(perf_t));
+	t4 = malloc(sizeof(perf_t));
+        t5 = malloc(sizeof(perf_t));
+	t6 = malloc(sizeof(perf_t));
+        t7 = malloc(sizeof(perf_t));
+	t8 = malloc(sizeof(perf_t));
+        
 
-	for(size = 5; size2 < 10; size += size *25/100)
+	double mflops, mflops1,mflops2,mflops3,mflops4;
+	char command[200];
+        system("rm results/ddot_perf.txt");
+	for(size = 50; size < 100000000; size += size/4)
 	{
-		printf("size2: %d\n", size2);
-		if(size != 5)
+		printf("M: %d ", size);
+		if(size != 50)
 		{
 			free(matriceD);
 			free(matriceE);
-			alloc_matrice(&matriceD, size, size);
-			alloc_matrice(&matriceE, size, size);
+			alloc_vecteur(&matriceD, size);
+			alloc_vecteur(&matriceE, size);
 		}
-		size2 = size * size;
 		perf(t1);
-		blas_t res = cblas_ddot(size2, matriceD, 1, matriceE, 1);
+		blas_t res = cblas_ddot(size, matriceD, 1, matriceE, 1);
 		perf(t2);
 		perf_diff(t1, t2);
-		mflops = perf_mflops(t2, size2);
+		mflops = perf_mflops(t2, 2 * size);
+                printf("Mflops/s: %le\n", mflops);
 		long time = t2->tv_usec + ( t2->tv_sec * 1000000);
-		if(size2==25) //ecrasement si fichier existe deja
-		{
-			sprintf(command, "echo %d %ld > results/ddot_perf.txt", size2, time);	
-			system(command);
-		}
-		else //concatenation des donnees
-		{
-			sprintf(command, "echo %d %ld >> results/ddot_perf.txt", size2, time);	
-			system(command);	
-		}
-		
+
+                sprintf(command, "echo %d %lf >> results/ddot_perf.txt", size, mflops);	
+                system(command);
+				
 	}
-	printf("Mflops/s: %le\n", mflops);
+
 
 
 //////////////////////////////////////////
 
-	int m = 50;
-	int n = 50;
-	int k = 50;
+	long m = 4;
+
 	
 	blas_t *matriceA, *matriceB, *matriceC;
 	
-	alloc_matrice(&matriceA, m, k);
-	alloc_matrice(&matriceB, k, n);
-	alloc_matrice(&matriceC, m, n);
-	
+	alloc_matrice(&matriceA, m, m);
+	alloc_matrice(&matriceB, m, m);
+        C = calloc(m*m*sizeof(blas_t));
+        system("rm results/dgemm_perf.txt");
 
-	for(m = 50; m*n < 1000000; m+= (m/4) + (m/4)%2)
+	for(; m< 1000; m+=100)
 	{
-		n = m;
-		k = m;
-		
-		if(m != 50)
+            printf("M: %d ", m);
+            affiche(m, m, matriceA, m, stdout);
+            affiche(m,m,matriceB,m,stdout);
+
+		if(m != 100)
 		{
 			free(matriceA);
 			free(matriceB);
 			free(matriceC);
-			alloc_matrice(&matriceA, m, k);
-			alloc_matrice(&matriceB, k, n);
-			alloc_matrice(&matriceC, m, n);
+			alloc_matrice(&matriceA, m, m);
+			alloc_matrice(&matriceB, m, m);
+			alloc_matrice(&matriceC, m, m);
 		}
-		
-		perf(t1);
-		cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans ,m, n, k, 1, matriceA, m, matriceB, k, 1, matriceC, m);
+        
+                perf(t1);
+                cblas_dgemm_scalaire( CblasNoTrans, CblasNoTrans ,m, m, m, 1, matriceA, m, matriceB, m, 1, matriceC, m);
 		perf(t2);
 		perf_diff(t1, t2);
-		
-		mflops = perf_mflops(t2, size2);
-		long time = t2->tv_usec + ( t2->tv_sec * 1000000);
-		
-		size2 = m*n;
-		if(size2 == 2500) //ecrasement si fichier existe deja
-		{
-			
-			sprintf(command, "echo %d %ld > results/dgemm_perf.txt",size2, time);	
-			system(command);
-		}
-		else //concatenation des donnees
-		{
-			sprintf(command, "echo %d %ld >> results/dgemm_perf.txt",size2, time);	
-			system(command);	
-		}
-		n+= (m/4) + (m/4)%2;
-		k+= (m/4) + (m/4)%2;
+                mflops1 = perf_mflops(t2, m * m * m * 3 + m * m + m*m);
+                printf("Mflops/s: %le\n", mflops);
+                
+        
+		perf(t3);
+		cblas_dgemm_scalaire1(matriceC, m, matriceA, m, matriceB, m,  m);
+		perf(t4);
+		perf_diff(t3, t4);
+        
+        
+                
+                mflops2 = perf_mflops(t4, m * m * m * 3 + m * m);
+              	perf(t5);
+		cblas_dgemm_scalaire2(matriceC, m, matriceA, m, matriceB, m,  m);
+		perf(t6);
+		perf_diff(t5, t6);
+                mflops3 = perf_mflops(t6, m * m * m * 3 + m * m);
+                perf(t7);
+		cblas_dgemm_scalaire3(matriceC, m, matriceA, m, matriceB, m,  m);
+		perf(t8);
+		perf_diff(t7, t8);
+                mflops4 = perf_mflops(t8, m * m * m * 3 + m * m);
+					
+                sprintf(command, "echo %d %lf %lf %lf %lf  >> results/dgemm_perf.txt", m * m, mflops1, mflops2, mflops3, mflops4);	
+                system(command);
 	}
 	printf("Mflops/s: %le\n", mflops);
 
