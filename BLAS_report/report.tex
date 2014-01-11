@@ -45,9 +45,12 @@ BLAS (Basic Linear Algebra Subprograms) est un ensemble de fonctions permettant 
 
 \section{Version séquentielle}
 L'objectif de ce premier TP était d'implémenter les birques de base d'une bibliothèque d'algèbre linéaire. Nous avons donc commencé par coder une opération de type BLAS 1, le produits scalaire. Et un produit matriciel qui est de type BLAS 3.
-Dans les bibliothèques d'algèbre linéaire, les routines de type BLAS 1 correspondent à un produit vecteur-vecteur, les BLAS 2, à un produit matrice-vecteur et le BLAS 3 à un produit matrice-matrice. Il ont respectivement une complexité en O(n), O(n²), et O(n³), n étant la traille d'un vecteur ou d'une matrice.
+Dans les bibliothèques d'algèbre linéaire, les routines de type BLAS 1 correspondent à un produit vecteur-vecteur, les BLAS 2, à un produit matrice-vecteur et le BLAS 3 à un produit matrice-matrice. Il ont respectivement une complexité en $O(n)$, $O(n²)$, et $O(n³)$, $n$ étant la traille d'un vecteur ou d'une matrice.
 Les matrices sont stockées sous forme de tableaux, les n premier éléments formant la première colonne. De plus, pour toutes les fonctions de type BLAS, on donne les dimensions de la matrice (ou du vecteur) ainsi qu'un pas ($leading dimension$) entre les premiers éléments de chaque colonne. Cela permet de pouvoir donner en paramètre l'adresse de début de la zone mémoire où est stockée la matrice, tout en pouvant extraire des sous matrices.
 
+La première routine étudiée en détail est la fonction $ddot$ qui effectue le produit scalaire de deux vecteurs. Cette routine effectue $n$ opérations flotantes et 2n+1.
+
+La deuxième routine étudiée en détail est la fonction $dgemm$ qui effectue un produit matriciel. La première implémentation concernait simplement la version séquentielle du produit matriciel. Trois versions ont été testées, car cette fonction contient en réalité trois boucles $for$ imbriquées (complexité du produit matriciel: $n³$), chacune correspondant à un indice different de la formule du produit matriciel. 
 
 \section{Version parallèle}
 
