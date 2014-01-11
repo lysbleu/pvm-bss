@@ -6,6 +6,7 @@ int max_threads  = 1 ;
 int num_threads = 1;
 
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+
 void cblas_dgemm_scalaire1(blas_t *C,int ldc, blas_t *A,int lda,  blas_t *B,
                            int ldb, int m)
 {
@@ -48,7 +49,7 @@ void cblas_dgemm_scalaire3(blas_t *C,int ldc, blas_t *A,int lda,  blas_t *B,
         {
             for(k=0; k<m; k++)
             {	
-                C[j*ldc+i] += A[i+k*lda]*B[k+j*ldb];
+                C[j*ldc+i] += A[k+i*lda]*B[k+j*ldb];
             }
         }
     }
@@ -69,18 +70,20 @@ void cblas_dgemm_scalaire(const enum CBLAS_TRANSPOSE TransA,
 			C[j*ldc+i]*=beta;
 			for(k=0; k<K; k++)
 			{	
-				if((TransA != CblasNoTrans) && (TransB != CblasTrans))
-				{
-					C[j*ldc+i] += alpha*A[k*lda+i]*B[k+j*ldb];
-				}
-				else if(TransA != CblasNoTrans)
-				{
-					C[j*ldc+i] += alpha*A[k+i*lda]*B[k+j*ldb];
-				}
-				else
-				{
-					C[j*ldc+i] += alpha*A[k*lda+i]*B[k*ldb+j];
-				}
+				C[j*ldc+i]+=alpha*A[k+i*lda]*B[k+j*ldb];
+                //~ C[j*ldc+i] += alpha*A[k+i*lda]*B[k+j*ldb];
+				//~ if((TransA != CblasNoTrans) && (TransB != CblasTrans))
+				//~ {
+					//~ C[j*ldc+i] += alpha*A[k*lda+i]*B[k+j*ldb];
+				//~ }
+				//~ else if(TransA != CblasNoTrans)
+				//~ {
+					//~ C[j*ldc+i] += alpha*A[k+i*lda]*B[k+j*ldb];
+				//~ }
+				//~ else
+				//~ {
+					//~ C[j*ldc+i] += alpha*A[k*lda+i]*B[k*ldb+j];
+				//~ }
 			}
 		}
 	}
@@ -256,7 +259,6 @@ void cblas_dgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA
 	if(getenv("MYLIB_NUM_THREADS") != NULL)
 	{
 		strcpy(var_env,getenv("MYLIB_NUM_THREADS"));
-
 		max_threads = atoi(var_env);
 	} 
 	
