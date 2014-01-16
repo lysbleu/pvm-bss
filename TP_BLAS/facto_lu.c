@@ -1,8 +1,40 @@
 #include "dgemm.h"
 #include "facto_lu.h"
-
+#include <math.h>
 #define MIN(x,y) ((x<y)?x:y)
 #define BLOCKSIZE 20
+
+void prod_tr(blas_t *A, const int M, blas_t *C, const int lda)
+{
+	int i, j, k;
+	for (i=0; i<M; i++)
+	{
+		for (j=0; j<M; j++)
+		{
+			C[i+j*lda]=0;
+			for (k=0; k<M; k++)
+			{
+				if(i>k && j>=k)
+				{
+					C[i+j*lda]+=A[i+k*lda]*A[k+j*lda];
+				}else if(k==i && j>=k)
+				{
+					C[i+j*lda]+=A[k+j*lda];
+				}
+			}
+		}
+	}
+} 
+blas_t erreur(blas_t *B, blas_t *C, const int M)
+{
+	blas_t erreur = 0;
+	int i,j;
+	for (i=0; i<M*M; i++)
+	{
+		erreur += fabs(B[i]-C[i]);
+	}
+	return erreur;
+}
 
 
 void dscal(blas_t *X, const int M, const int incX, const blas_t alpha)
@@ -62,6 +94,7 @@ void dtrsm(const enum CBLAS_SIDE side, const enum CBLAS_UPLO uplo,
                     {
                         if(diag == CblasNonUnit)
                         {
+							printf("lf\n",A[k+k*lda]);
                             B[k+j*ldb] /=A[k+k*lda];
                         }
                         for(i=0;i<k-1; i++)
@@ -89,6 +122,7 @@ void dtrsm(const enum CBLAS_SIDE side, const enum CBLAS_UPLO uplo,
                     {
                         if(diag == CblasNonUnit)
                         {
+							printf("lf\n",A[k+k*lda]);
                             B[k+j*ldb] /=A[k+k*lda];
                         }
                         for(i=k;i<M; i++)
@@ -180,14 +214,14 @@ int dgetrf_nopiv(const int M,const int N, blas_t* A, const int lda) {
     }
     else {
         for (i = 0 ; i < MIN(M,N); i+=BLOCKSIZE) {
-            ib = MIN(MIN(M,N) -i+1, BLOCKSIZE);
-            dgetf2_nopiv(M - i+1, ib, &(A[i*lda +  i]), lda);
+            ib = MIN(MIN(M,N)-i, BLOCKSIZE);
+            dgetf2_nopiv(M - i, ib, &(A[i*lda +  i]), lda);
              
 			if(i + ib < N) {
 				dtrsm(CblasLeft, CblasLower, CblasNoTrans, CblasUnit, ib, N - i - ib, 1, &(A[i * lda + i]), lda, &A[(i + ib) * lda + i], lda);
 
 				if ( i + ib < M) {
-					cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, M - i - ib + 1, N - i - ib + 1, ib, -1, &(A[i * lda + i + ib]), lda, &A[i + (ib+ i) * lda], lda, 1, &A[i + ib + (i+ ib) * lda], lda);
+					cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, M - i - ib, N - i - ib, ib, -1, &(A[i * lda + i + ib]), lda, &A[i + (ib+ i) * lda], lda, 1, &A[i + ib + (i+ ib) * lda], lda);
 				}
 			}
 		}
