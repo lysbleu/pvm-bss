@@ -21,7 +21,7 @@ void dgetf2_nopiv( const int M, const int N, blas_t *A, const int lda)
     for (k=0; k<  limite; k++)
     {
         dscal(&(A[k*lda+k+1]), M-k-1, 1, 1/A[k*lda+k]);
-        cblas_dger(CblasColMajor, M-k-1, N-k-1, 1, &(A[k*lda+k+1]), 1, &(A[(k+1)*lda+k]), lda, &(A[(k+1)*lda+k+1]), lda);
+        cblas_dger(CblasColMajor, M-k-1, N-k-1, -1, &(A[k*lda+k+1]), 1, &(A[(k+1)*lda+k]), lda, &(A[(k+1)*lda+k+1]), lda);
     }
 }
 
