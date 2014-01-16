@@ -1,7 +1,7 @@
 #include "dgemm.h"
 #include "facto_lu.h"
 
-#define MIN(x,y) (x<y)?x:y
+#define MIN(x,y) ((x<y)?x:y)
 #define BLOCKSIZE 20
 
 
@@ -17,10 +17,11 @@ void dscal(blas_t *X, const int M, const int incX, const blas_t alpha)
 void dgetf2_nopiv( const int M, const int N, blas_t *A, const int lda)
 {
     int k;
-    for (k=0; k< MIN(M,N) - 1; k++)
+    int limite = MIN(M,N)-1;
+    for (k=0; k<  limite; k++)
     {
         dscal(&(A[k*lda+k+1]), M-k-1, 1, 1/A[k*lda+k]);
-        cblas_dger(CblasColMajor, M-k-1, N-k-1, 1, &(A[k*lda+k+1]), 1, &(A[(k+1)*lda+k]), lda, &(A[k*lda+k]), lda);
+        cblas_dger(CblasColMajor, M-k-1, N-k-1, 1, &(A[k*lda+k+1]), 1, &(A[(k+1)*lda+k]), lda, &(A[(k+1)*lda+k+1]), lda);
     }
 }
 
@@ -158,7 +159,7 @@ int dgetrs_nopiv(const int N, const int NRHS, double* A, const int lda, double* 
     return 0;
 }
 
-int dgetrf_nopiv(int M, int N, blas_t* A, const int lda) {
+int dgetrf_nopiv(const int M,const int N, blas_t* A, const int lda) {
     int i,ib;
     if(M < 0) {
         return -1;
@@ -182,14 +183,14 @@ int dgetrf_nopiv(int M, int N, blas_t* A, const int lda) {
             ib = MIN(MIN(M,N) -i+1, BLOCKSIZE);
             dgetf2_nopiv(M - i+1, ib, &(A[i*lda +  i]), lda);
              
-        if(i + ib < N) {
-            dtrsm(CblasLeft, CblasLower, CblasNoTrans, CblasUnit, ib, N - i - ib, 1, &(A[i * lda + i]), lda, &A[(i + ib) * lda + i], lda);
+			if(i + ib < N) {
+				dtrsm(CblasLeft, CblasLower, CblasNoTrans, CblasUnit, ib, N - i - ib, 1, &(A[i * lda + i]), lda, &A[(i + ib) * lda + i], lda);
 
-            if ( i + ib < M) {
-                cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, M - i - ib + 1, N - i - ib + 1, ib, -1, &(A[i * lda + i + ib]), lda, &A[i + (ib+ i) * lda], lda, 1, &A[i + ib + (i+ ib) * lda], lda);
-            }
-        }
-    }
+				if ( i + ib < M) {
+					cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, M - i - ib + 1, N - i - ib + 1, ib, -1, &(A[i * lda + i + ib]), lda, &A[i + (ib+ i) * lda], lda, 1, &A[i + ib + (i+ ib) * lda], lda);
+				}
+			}
+		}
     }    
     return 0;
 }
