@@ -124,8 +124,8 @@ int dgesv_nopiv( const int N, int nrhs, blas_t* A, const int lda, blas_t* B,
     if (ret != 0) {
         return ret;
     }
+    dgetrs_nopiv(CblasNoTrans, N, NRHS, A, lda, B, ldb);
     
-
 }
 
 int dgetrs_nopiv(const int N, const int NRHS, double* A, const int lda, double* B, const int ldb) {
