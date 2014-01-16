@@ -1,4 +1,4 @@
-DEBUG=no
+DEBUG=yes
 CC=gcc
 
 ifeq ($(DEBUG),yes)
@@ -17,7 +17,7 @@ all: blas
 driver: $(OBJ)
 	@$(CC) -o $@ $^ $(LDFLAGS)
 
-blas: perf.o driver.o ddot.o dgemm.o util.o
+blas: test_lu.o facto_lu.o perf.o  ddot.o dgemm.o util.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 util.o:util.c util.h 
