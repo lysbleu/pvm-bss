@@ -16,8 +16,8 @@ void dgetf2_nopiv( const int M, const int N, blas_t *A, const int lda)
     int k;
     for (k=0; k< MIN(M,N); k++)
     {
-        dscal(A[k*lda+k+1], M-k, 1, 1/A[k*lda+k]);
-        cblas_dger(CblasColMajor, M-k, N-k, alpha, A[k*lda+k+1], 1, A[(k+1)*lda+k], lda, A[k*lda+k], lda);
+        dscal(&(A[k*lda+k+1]), M-k, 1, 1/A[k*lda+k]);
+        cblas_dger(CblasColMajor, M-k, N-k, 1, &(A[k*lda+k+1]), 1, &(A[(k+1)*lda+k]), lda, &(A[k*lda+k]), lda);
     }
 }
 
@@ -26,13 +26,13 @@ void dtrsm(const enum CBLAS_SIDE side, const enum CBLAS_UPLO uplo,
            const int M, const int N, const blas_t alpha, const blas_t *A,
            const int lda, blas_t *B, const int ldb)
 {
-    int i,j;
+    int i,j,k;
 	
     if(side == CblasLeft )
     {
         if(alpha == 0)
         {
-            for (j=0; j<N, j++)
+            for (j=0; j<N; j++)
             {
                 for (i=0; i<M; i++)
                 {
@@ -102,7 +102,7 @@ void dtrsm(const enum CBLAS_SIDE side, const enum CBLAS_UPLO uplo,
     }
 }  
 
-int dgesv( const int N, int nrhs, blas_t* A, const int lda, blas_t* B,
+int dgesv_nopiv( const int N, int nrhs, blas_t* A, const int lda, blas_t* B,
            const int ldb) {
     if(N < 0) {
         return -1;
@@ -125,7 +125,7 @@ int dgesv( const int N, int nrhs, blas_t* A, const int lda, blas_t* B,
         return ret;
     }
     
-    ret = dgetrs
+
 }
 
 int dgetrs_nopiv(const int N, const int NRHS, double* A, const int lda, double* B, const int ldb) {
@@ -133,7 +133,7 @@ int dgetrs_nopiv(const int N, const int NRHS, double* A, const int lda, double* 
         return -2;
     }
     else if(NRHS < 0) {
-        return -3
+        return -3;
     }
     else if(lda < 1 || lda < N ) {
         return -5;
