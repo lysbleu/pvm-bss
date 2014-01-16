@@ -29,6 +29,12 @@ util.o:util.c util.h
 mkl: driver.o util.o perf.o
 	icc -o driver_mkl driver.o perf.o util.o $(LDFLAGS) -mkl
 
+type_mpi.o:type_mpi.c type_mpi.h
+	mpicc -o $@ -c $< $(CFLAGS)
+
+mpi:util.o type_mpi.o
+	mpicc -g -o mpi_test type_mpi.o $(LDFLAGS)
+	
 .PHONY: clean mrproper
 
 clean:
