@@ -1,6 +1,9 @@
 #include "dgemm.h"
+#include "facto_lu.h"
 
 #define MIN(x,y) (x<y)?x:y
+#define BLOCKSIZE 20
+
 
 void dscal(blas_t *X, const int M, const int incX, const blas_t alpha)
 {
@@ -14,10 +17,10 @@ void dscal(blas_t *X, const int M, const int incX, const blas_t alpha)
 void dgetf2_nopiv( const int M, const int N, blas_t *A, const int lda)
 {
     int k;
-    for (k=0; k< MIN(M,N); k++)
+    for (k=0; k< MIN(M,N) - 1; k++)
     {
-        dscal(&(A[k*lda+k+1]), M-k, 1, 1/A[k*lda+k]);
-        cblas_dger(CblasColMajor, M-k, N-k, 1, &(A[k*lda+k+1]), 1, &(A[(k+1)*lda+k]), lda, &(A[k*lda+k]), lda);
+        dscal(&(A[k*lda+k+1]), M-k-1, 1, 1/A[k*lda+k]);
+        cblas_dger(CblasColMajor, M-k-1, N-k-1, 1, &(A[k*lda+k+1]), 1, &(A[(k+1)*lda+k]), lda, &(A[k*lda+k]), lda);
     }
 }
 
@@ -119,13 +122,13 @@ int dgesv_nopiv( const int N, int nrhs, blas_t* A, const int lda, blas_t* B,
     
     int ret = 0;
     
-    ret = dgetrf(N, N, A, lda);
+    ret = dgetrf_nopiv(N,N, A, lda);
     
     if (ret != 0) {
         return ret;
     }
-    dgetrs_nopiv(CblasNoTrans, N, NRHS, A, lda, B, ldb);
-    
+    dgetrs_nopiv( N, nrhs, A, lda, B, ldb);
+    return ret;
 }
 
 int dgetrs_nopiv(const int N, const int NRHS, double* A, const int lda, double* B, const int ldb) {
@@ -149,8 +152,44 @@ int dgetrs_nopiv(const int N, const int NRHS, double* A, const int lda, double* 
 
     dtrsm(CblasLeft, CblasLower, CblasNoTrans, CblasUnit, N, NRHS, 1, A, lda, B, ldb);
     dtrsm(CblasLeft, CblasUpper, CblasNoTrans, CblasNonUnit, N, NRHS, 1, A, lda, B, ldb);
-    dtrsm(CblasLeft, CblasLower, CblasTrans, CblasNonUnit, N, NRHS, 1, A, lda, B, ldb);
-    dtrsm(CblasLeft, CblasLower, CblasTrans, CblasUnit, N, NRHS, 1, A, lda, B, ldb);
+    //  dtrsm(CblasLeft, CblasLower, CblasTrans, CblasNonUnit, N, NRHS, 1, A, lda, B, ldb);
+    //dtrsm(CblasLeft, CblasLower, CblasTrans, CblasUnit, N, NRHS, 1, A, lda, B, ldb);
     
+    return 0;
+}
+
+int dgetrf_nopiv(int M, int N, blas_t* A, const int lda) {
+    int i,ib;
+    if(M < 0) {
+        return -1;
+    }
+    else if (N < 0) {
+        return -2;
+    }
+    else if(lda < 1 || lda < M) {
+        return -4;
+    }
+
+    if (M == 0 || N == 0) {
+        return 0;
+    }
+
+    if (MIN(M,N) < BLOCKSIZE ) {
+        dgetf2_nopiv(M,N,A,lda);
+    }
+    else {
+        for (i = 0 ; i < MIN(M,N); i+=BLOCKSIZE) {
+            ib = MIN(MIN(M,N) -i+1, BLOCKSIZE);
+            dgetf2_nopiv(M - i+1, ib, &(A[i*lda +  i]), lda);
+             
+        if(i + ib < N) {
+            dtrsm(CblasLeft, CblasLower, CblasNoTrans, CblasUnit, ib, N - i - ib, 1, &(A[i * lda + i]), lda, &A[(i + ib) * lda + i], lda);
+
+            if ( i + ib < M) {
+                cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, M - i - ib + 1, N - i - ib + 1, ib, -1, &(A[i * lda + i + ib]), lda, &A[i + (ib+ i) * lda], lda, 1, &A[i + ib + (i+ ib) * lda], lda);
+            }
+        }
+    }
+    }    
     return 0;
 }
