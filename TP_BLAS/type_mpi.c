@@ -3,6 +3,7 @@
 #include "mpi.h"
 #include <string.h>
 #include "unistd.h"
+
 int main(int argc, char ** argv)
 {
     MPI_Init(NULL, NULL);
@@ -27,9 +28,9 @@ int main(int argc, char ** argv)
     
     memset(recv_mat, 0, (m * n / nb_procs) * sizeof(blas_t));
     
-    MPI_Datatype object;
-    MPI_Type_vector(block_nb_col, m , m, MPI_DOUBLE, &object);
-    MPI_Type_commit(&object);
+    MPI_Datatype colBlock;
+    MPI_Type_vector(block_nb_col, m , m, MPI_DOUBLE, &colBlock);
+    MPI_Type_commit(&colBlock);
 	
 	if(myrank == 0)
 	{
@@ -39,22 +40,22 @@ int main(int argc, char ** argv)
 			{
 				if(i%nb_procs!=0)
 				{
-					MPI_Send(&(matrice[i*block_size]), 1, object, i%nb_procs, i%nb_procs, MPI_COMM_WORLD);
+					MPI_Send(&(matrice[i*block_size]), 1, colBlock, i%nb_procs, i%nb_procs, MPI_COMM_WORLD);
 				}
 				else
 				{
-					memcpy(&(recv_mat[i/nb_procs]), &(matrice[i*block_size]), block_size*sizeof(double));
+					memcpy(&(recv_mat[(i/nb_procs)*block_size]), &(matrice[i*block_size]), block_size*sizeof(double));
 				}
 			}
 			else
 			{
 				if(nb_procs-(i%nb_procs)-1!=0)
 				{
-					MPI_Send(&(matrice[i*block_size]), 1, object, nb_procs-(i%nb_procs)-1, nb_procs-(i%nb_procs)-1, MPI_COMM_WORLD);
+					MPI_Send(&(matrice[i*block_size]), 1, colBlock, nb_procs-(i%nb_procs)-1, nb_procs-(i%nb_procs)-1, MPI_COMM_WORLD);
 				}
 				else
 				{
-					memcpy(&(recv_mat[i/nb_procs]), &(matrice[i*block_size]), block_size*sizeof(double));
+					memcpy(&(recv_mat[(i/nb_procs)*block_size]), &(matrice[i*block_size]), block_size*sizeof(double));
 				}
 			}
 		}	
@@ -63,7 +64,7 @@ int main(int argc, char ** argv)
     {
 		for(j = 0; j < nb_blocks_by_proc; j++)
 		{
-			MPI_Recv(&(recv_mat[j * block_size]), 1 , object, 0, myrank, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Recv(&(recv_mat[j * block_size]), 1 , colBlock, 0, myrank, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		}
 	}
  
@@ -78,4 +79,7 @@ int main(int argc, char ** argv)
 	affiche(m, n / nb_procs, recv_mat, m, stdout);
 	
 	MPI_Finalize();
+	destruction(matrice);
+	destruction(recv_mat);
+	return 0;
 }
