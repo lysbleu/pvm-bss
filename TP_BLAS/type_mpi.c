@@ -72,12 +72,10 @@ int main(int argc, char ** argv)
 		printf("myrank: %d\n", myrank);
 		affiche(m, n, matrice, m, stdout);
 	}
-	else
-	{
-		sleep(myrank);
-		printf("myrank: %d\n", myrank);
-		affiche(m, n / nb_procs, recv_mat, m, stdout);
-	}
+
+	sleep(myrank);
+	printf("myrank: %d\n", myrank);
+	affiche(m, n / nb_procs, recv_mat, m, stdout);
 	
 	MPI_Finalize();
 }
