@@ -6,8 +6,10 @@
 
 int main(int argc, char* argv[]) {
     int M, N, i;
+    int * ipiv;
     M= 3;
     N= 3;
+    ipiv=calloc(N,sizeof(int)); 
     
     blas_t* A;
     blas_t* b;
@@ -32,22 +34,48 @@ int main(int argc, char* argv[]) {
         //~ }
     //~ }
     memcpy(B,A,M*N*sizeof(blas_t));
+    printf("Facto no piv\n");
     printf("Matrice A:\n");
     affiche(M, N, A, N, stdout); 
     dgetrf_nopiv(M, N, A, N);
     printf("Matrice LU:\n");
-    affiche(M, N, A, N, stdout);   
-    prod_tr(A, M, C, N);
+    affiche(M, N, A, N, stdout);
+    prod_tr(A, M, C, N);   
     printf("Produit LU:\n");
     affiche(M, N, C, N, stdout);
     blas_t err = erreur(B, C, M);
     printf("Erreur:%lf\n", err);
+    for (i=0; i<M*N; i++)
+    {
+		A[i] = i+1;
+	}
+    memcpy(B,A,M*N*sizeof(blas_t));
+    printf("\nFacto avec piv\n");
+    printf("Matrice A:\n");
+    affiche(M, N, A, N, stdout); 
+    dgetf2(M,N, A, N, ipiv);
+    printf("Matrice LU:\n");
+    affiche(M, N, A, N, stdout);
+    prod_tr(A, M, C, N);   
+    printf("Produit LU:\n");
+    affiche(M, N, C, N, stdout);
+    printf("Ipiv:\n");
+	for (i=0; i<N; i++)
+	{
+		printf("%d ", ipiv[i]);
+	}
+	printf("\n\n");
+
     destruction(A);
     destruction(C);
     destruction(b);
-    
+        
+    printf("\ndgetrf no piv\n");
     M=100;
     N=100;
+	free(ipiv);
+    ipiv=calloc(N,sizeof(int)); 
+
     alloc_matrice(&A, M,N);
     for (i=0; i<M; i++)
     {
@@ -62,6 +90,33 @@ int main(int argc, char* argv[]) {
     err = erreur(B, C, M);
 
     printf("Erreur:%lf\n", err);
-    //~ affiche(M, N, C, N, stdout);   
-   
+    
+    printf("\ndgetrf piv\n");
+    M=22;
+    N=22;
+	free(ipiv);
+    ipiv=calloc(N,sizeof(int)); 
+
+    alloc_matrice(&A, M,N);
+	alloc_matrice(&B, M,N);
+    memcpy(B,A,M*N*sizeof(blas_t));
+    alloc_matrice(&C, M,N);
+
+	printf("Matrice A:\n");
+    //~ affiche(M, N, A, N, stdout); 
+    dgetrf(M, N, A, N, ipiv);   
+    printf("Matrice LU:\n");
+    //~ affiche(M, N, A, N, stdout);
+    prod_tr(A, M, C, N);   
+    printf("Produit LU:\n");
+    //~ affiche(M, N, C, N, stdout);
+    printf("Ipiv:\n");
+	for (i=0; i<N; i++)
+	{
+		printf("%d ", ipiv[i]);
+	}
+	printf("\n\n");
+
+	destruction(A);
+    destruction(C);   
 }
