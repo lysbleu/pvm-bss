@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
     printf("Facto no piv\n");
     printf("Matrice A:\n");
     affiche(M, N, A, N, stdout); 
-    dgetrf_nopiv(M, N, A, N);
+    dgetf2_nopiv(M, N, A, N);
     printf("Matrice LU:\n");
     affiche(M, N, A, N, stdout);
     prod_tr(A, M, C, N);   
@@ -71,8 +71,8 @@ int main(int argc, char* argv[]) {
     destruction(b);
         
     printf("\ndgetrf no piv\n");
-    M=100;
-    N=100;
+    M=6;
+    N=6;
 	free(ipiv);
     ipiv=calloc(N,sizeof(int)); 
 
@@ -85,15 +85,23 @@ int main(int argc, char* argv[]) {
     memcpy(B,A,M*N*sizeof(blas_t));
     alloc_matrice(&C, M,N);
 
+	printf("Matrice A:\n");
+    affiche(M, N, A, N, stdout); 
     dgetrf_nopiv(M, N, A, N);   
+    printf("Matrice LU:\n");
+    affiche(M, N, A, N, stdout);
+    prod_tr(A, M, C, N);   
+    printf("Produit LU:\n");
+    affiche(M, N, C, N, stdout);
+    
     prod_tr(A, M, C, N);
     err = erreur(B, C, M);
 
     printf("Erreur:%lf\n", err);
     
     printf("\ndgetrf piv\n");
-    M=22;
-    N=22;
+    M=6;
+    N=6;
 	free(ipiv);
     ipiv=calloc(N,sizeof(int)); 
 
@@ -103,13 +111,13 @@ int main(int argc, char* argv[]) {
     alloc_matrice(&C, M,N);
 
 	printf("Matrice A:\n");
-    //~ affiche(M, N, A, N, stdout); 
+    affiche(M, N, A, N, stdout); 
     dgetrf(M, N, A, N, ipiv);   
     printf("Matrice LU:\n");
-    //~ affiche(M, N, A, N, stdout);
+    affiche(M, N, A, N, stdout);
     prod_tr(A, M, C, N);   
     printf("Produit LU:\n");
-    //~ affiche(M, N, C, N, stdout);
+    affiche(M, N, C, N, stdout);
     printf("Ipiv:\n");
 	for (i=0; i<N; i++)
 	{
