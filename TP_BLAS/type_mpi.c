@@ -42,7 +42,7 @@ int main(int argc, char ** argv)
 				indice_debut = (i + j * nb_blocks / nb_procs ) * (block_nb_col * m) ;
 				//indice_debut += ((j%2) * block_nb_col * (nb_procs - (i+1))); // inversion pour serpentin
 				printf("indice début: %d\n", indice_debut);
-				MPI_Send(&matrice + indice_debut, 1, object, i, i, MPI_COMM_WORLD);
+				MPI_Send(&matrice[indice_debut], 1, object, i, i, MPI_COMM_WORLD);
 			}
 		}		
 	}
