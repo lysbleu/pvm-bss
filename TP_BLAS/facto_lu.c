@@ -348,8 +348,8 @@ int dgetrf(const int M,const int N, blas_t* A, const int lda, int *ipiv) {
 			    swap_range(N-i-ib, &(A[(i+ib)*lda]), lda, i, i+ib, ipiv);
 				dtrsm(CblasLeft, CblasLower, CblasNoTrans, CblasUnit, ib, N - i - ib, 1, &(A[i * lda + i]), lda, &A[(i + ib) * lda + i], lda);
 				if ( i + ib < M) {
-					//~ cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, M - i - ib, N - i - ib, ib, -1, &(A[i * lda + i + ib]), lda, &(A[i + (ib+ i) * lda]), lda, 1, &(A[i + ib + (i+ ib) * lda]), lda);
-					cblas_dgemm_test(CblasNoTrans, CblasNoTrans, M - i - ib, N - i - ib, ib, -1, &(A[i * lda + i + ib]), lda, &(A[i + (ib+ i) * lda]), lda, 1, &(A[i + ib + (i+ ib) * lda]), lda);
+					cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, M - i - ib, N - i - ib, ib, -1, &(A[i * lda + i + ib]), lda, &(A[i + (ib+ i) * lda]), lda, 1, &(A[i + ib + (i+ ib) * lda]), lda);
+					//~ cblas_dgemm_test(CblasNoTrans, CblasNoTrans, M - i - ib, N - i - ib, ib, -1, &(A[i * lda + i + ib]), lda, &(A[i + (ib+ i) * lda]), lda, 1, &(A[i + ib + (i+ ib) * lda]), lda);
 				}
 			}
 		}

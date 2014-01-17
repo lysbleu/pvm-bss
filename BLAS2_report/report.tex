@@ -41,17 +41,47 @@
 \clearpage
 \section{Introduction}
 
-Dans la continuation du TP précédent, nous avons tenté d'implémenter des fonctions faisant partie de BLAS, ceci dans le but de réaliser une factorisation LU d'une matrice de manière parallèle. Nous avons d'abord procédé à la création d'une version séquentielle scalaire, puis par bloc, pour enfin nous intéresser à la parallélisation grace à MPI. Chacune des versions faisant appel à la précédente, il était indispensable de procéder dans cet ordre. Il est intéressant de noter que plus l'on avançait dans les étapes, plus la difficulté augmentait. Nous détaillerons par la suite celles que nous avons rencontré.
+Dans la continuation du TP précédent, nous avons tenté d'implémenter des fonctions faisant partie de BLAS, ceci dans le but de réaliser une factorisation LU d'une matrice de manière parallèle. Nous avons d'abord procédé à la création d'une version séquentielle scalaire, puis par bloc, pour enfin nous intéresser à la parallélisation grâce à MPI. Chacune des versions faisant appel à la précédente, il était indispensable de procéder dans cet ordre. Il est intéressant de noter que plus l'on avançait dans les étapes, plus la difficulté augmentait. Nous détaillerons par la suite celles que nous avons rencontré.
 
 \section{Version séquentielle}
 
+Afin de réaliser une factorisation LU, toute les fonctions BLAS ne sont pas requises. Seules celles nécessaires ont donc été codées :
+
+\begin{itemize}
+\item dgetf2
+\item dtrsm
+\item dgesv
+\item dgetrs\footnote{En réalité, celle-ci n'a pas été utilisée}
+\item dgetrf
+\item dscal
+\end{itemize}
+
+En outre, certaines fonctions créées auparavant ont été utilisées : 
+
+
+\begin{itemize}
+\item dger
+\item dgemm
+\end{itemize}
+
+Premièrement, des versions sans pivot ont été faites, dans le but de simplifier le problème. Le pivot est utile premièrement afin que les calculs soient possibles lorsque l'on a un $0$ sur la diagonale, secondement afin de limiter les erreurs d'approximation dûs aux calculs flottants. En effet, en échangeant chaque ligne avec celle ayant le terme diagonal le plus élevé en valeur absolue, on rend les arrondis plus insignifiants lorsque l'on effectue des divisions par celle-ci.
+
+Toutefois, l'intérêt de faire les versions sans pivot est remis en question, car faire une échange de ligne n'est pas ce qu'il y a de plus compliqué, et cela permet d'éviter certains écueils notamment lorsque l'on veut tester les fonctions sur des matrices réelles. Et dans les faits, rajouter le pivot nous a permis de corriger certains bogues.
+
+La factorisation LU scalaire est réalisée par la fonction dgetf2, qui fait appel à dger et dscal. Composée d'une simple boucle d'appels à ces deux fonctions, peu de difficultés ont été rencontrées.
+
+Ensuite, il a fallu effectué la même chose mais par bloc. La fonction dgetrf se charge de cette tâche, en faisant appel à dgetf2, dtrsm, et dgemm. Sur chacun des blocs, une factorisation %TODO or not TODO
+
+Cette fois, quelque problèmes de codage ont été rencontrés même si l'algorithme général était compris. Notamment, en dépit de l'apparente justesse des algorithmes il est apparu que l'on obtenait des erreurs d'un ordre de grandeur très important.
 
 \section{Version parallèle}
 
-La version parallèle 
+La version parallèle se base sur les travaux réalisés en séquentiel, auquels se greffe MPI afin de réaliser un ordonnancement et les communications entre les processus. En effet, nous avons déjà un algorithme afin de résoudre le problème par bloc, il faut ensuite faire traiter les blocs par des processus différents, communiquer entre les blocs les informations nécessaires.
+
+Il a été demandé de travailler sur une distribution bloc colonne en serpentin, ce qui a priori ne rajoute pas de difficulté mais est un simple choix. Un début de communication MPI en serpentin a été implémenté, il ne reste qu'à coupler ceci avec la factorisation LU. En conséquence, il n'a pas été possible d'effectuer des tests de performances pertinents.
 
 \section{Conclusion}
 
-Réaliser une factorisation LU en utilisant MPI nécessite en premier lieu de bien comprendre comment réaliser une factorisation LU. En effet, comprendre ses mécanismes s'est effectué essentiellement par la lecture de code en Fortran, il a donc fallu assimiler la méthode --- ce qui a demandé un certain temps --- en conséquence de quoi la parallélisation, pourtant coeur du projet, n'a pas pu être aussi bien avancée qu'il l'aurait été souhaité. Toutefois le principe a pu être compris, et des progrès considérables auraient pu être accomplis en un laps de temps minime. En outre, cela nous a permis d'encore approfondir la mise en pratique de l'algèbre numérique couplée à la programmation informatique.
+Réaliser une factorisation LU en utilisant MPI nécessite en premier lieu de bien comprendre comment la réaliser. En effet, comprendre ses mécanismes s'est effectué essentiellement par la lecture de code en Fortran, il a donc fallu assimiler la méthode --- ce qui a demandé un certain temps --- en conséquence de quoi la parallélisation, pourtant cœur du projet, n'a pas pu être aussi bien avancée qu'il l'aurait été souhaité. Toutefois le principe a pu être compris, et des progrès considérables auraient pu être accomplis en un laps de temps minime. En outre, cela nous a permis  d'approfondir notre capacité à mettre en pratique l'algèbre numérique couplée à la programmation informatique.
 
 \end{document}
