@@ -3,14 +3,35 @@
 #include <math.h>
 #define MIN(x,y) ((x<y)?x:y)
 #define MAX(x,y) ((x>y)?x:y)
-#define BLOCKSIZE 20
+#define BLOCKSIZE 2
+
+void cblas_dgemm_test(const enum CBLAS_TRANSPOSE TransA,
+                 const enum CBLAS_TRANSPOSE TransB, const int M, const int N,
+                 const int K, const blas_t alpha, const blas_t *A,
+                 const int lda, const blas_t *B, const int ldb,
+                 const blas_t beta, blas_t *C, const int ldc)
+{
+	int i,j,k;
+	
+	for (j=0; j<N; j++)
+	{
+		for (i=0; i<M;i++)
+		{
+			C[j*ldc+i]*=beta;
+			for(k=0; k<K; k++)
+			{	
+				C[j*ldc+i]+=alpha*A[k*lda+i]*B[k+j*ldb];
+			}
+		}
+	}
+}
 
 void swap_range(const int M, blas_t *A, const int lda, const int K1, const int K2, int * ipiv)
 {
 	int i;
 	for (i=K1; i<=K2; i++)
 	{
-		if(i != ipiv[i])
+		if(K1 != ipiv[i])
 		{
 			swap(M, &(A[i]), &(A[ipiv[i]]), lda);
 		}
@@ -135,6 +156,7 @@ void dtrsm(const enum CBLAS_SIDE side, const enum CBLAS_UPLO uplo,
                     B[i+j*ldb]=0;
                 }
             }
+            return ;
         }
 		
         if(uplo == CblasUpper)
@@ -154,7 +176,6 @@ void dtrsm(const enum CBLAS_SIDE side, const enum CBLAS_UPLO uplo,
                     {
                         if(diag == CblasNonUnit)
                         {
-							printf("%lf\n",A[k+k*lda]);
                             B[k+j*ldb] /=A[k+k*lda];
                         }
                         for(i=0;i<k-1; i++)
@@ -182,7 +203,6 @@ void dtrsm(const enum CBLAS_SIDE side, const enum CBLAS_UPLO uplo,
                     {
                         if(diag == CblasNonUnit)
                         {
-							printf("%lf\n",A[k+k*lda]);
                             B[k+j*ldb] /=A[k+k*lda];
                         }
                         for(i=k;i<M; i++)
@@ -278,10 +298,10 @@ int dgetrf_nopiv(const int M,const int N, blas_t* A, const int lda) {
             dgetf2_nopiv(M - i, ib, &(A[i*lda +  i]), lda);
              
 			if(i + ib < N) {
-				dtrsm(CblasLeft, CblasLower, CblasNoTrans, CblasUnit, ib, N - i - ib, 1, &(A[i * lda + i]), lda, &A[(i + ib) * lda + i], lda);
+				dtrsm(CblasLeft, CblasLower, CblasNoTrans, CblasUnit, ib, N - i - ib, 1, &(A[i * lda + i]), lda, &(A[(i + ib) * lda + i]), lda);
 
 				if ( i + ib < M) {
-					cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, M - i - ib, N - i - ib, ib, -1, &(A[i * lda + i + ib]), lda, &A[i + (ib+ i) * lda], lda, 1, &A[i + ib + (i+ ib) * lda], lda);
+					cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, M - i - ib, N - i - ib, ib, -1, &(A[i * lda + i + ib]), lda, &(A[i + (ib+ i) * lda]), lda, 1, &(A[i + ib + (i+ ib) * lda]), lda);
 				}
 			}
 		}
@@ -319,13 +339,16 @@ int dgetrf(const int M,const int N, blas_t* A, const int lda, int *ipiv) {
              {
 				 ipiv[j]=i+ipiv[j];
 			 }
+			 //pivotage partie gauche 0:i-1
             swap_range(i, A, lda, i, i+ib, ipiv);
 
 			if(i + ib < N) {
-				dtrsm(CblasLeft, CblasLower, CblasNoTrans, CblasUnit, ib, N - i - ib, 1, &(A[i * lda + i]), lda, &A[(i + ib) * lda + i], lda);
+				//pivotage partie droite i+ib+1:N-1
 			    swap_range(N-i-ib, &(A[(i+ib)*lda]), lda, i, i+ib, ipiv);
+				dtrsm(CblasLeft, CblasLower, CblasNoTrans, CblasUnit, ib, N - i - ib, 1, &(A[i * lda + i]), lda, &A[(i + ib) * lda + i], lda);
 				if ( i + ib < M) {
-					cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, M - i - ib, N - i - ib, ib, -1, &(A[i * lda + i + ib]), lda, &A[i + (ib+ i) * lda], lda, 1, &A[i + ib + (i+ ib) * lda], lda);
+					//~ cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, M - i - ib, N - i - ib, ib, -1, &(A[i * lda + i + ib]), lda, &(A[i + (ib+ i) * lda]), lda, 1, &(A[i + ib + (i+ ib) * lda]), lda);
+					cblas_dgemm_test(CblasNoTrans, CblasNoTrans, M - i - ib, N - i - ib, ib, -1, &(A[i * lda + i + ib]), lda, &(A[i + (ib+ i) * lda]), lda, 1, &(A[i + ib + (i+ ib) * lda]), lda);
 				}
 			}
 		}
