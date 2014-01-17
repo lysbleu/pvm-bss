@@ -26,8 +26,8 @@ int main(int argc, char ** argv)
     memset(recv_mat, 0, (m * n / nb_procs) * sizeof(blas_t));
     
     MPI_Datatype object;
-    MPI_Aint stride = m * nb_procs * block_nb_col;
-    MPI_Type_vector( block_nb_col, m , m, MPI_DOUBLE, &object);
+    //MPI_Aint stride = m * nb_procs * block_nb_col;
+    MPI_Type_vector(block_nb_col, m , m, MPI_DOUBLE, &object);
     MPI_Type_commit(&object);
 	
 	MPI_Status status;
@@ -37,18 +37,18 @@ int main(int argc, char ** argv)
 	{
 		for(int i = 1; i < nb_procs; i++)
 		{
-			for(int j = 0; j < nb_blocks ; j++)
+			for(int j = 0; j < nb_blocks/block_nb_col ; j++)
 			{
-				indice_debut = (i + j * nb_procs) * (block_nb_col * m) ;
-				indice_debut += ((j%2) * block_nb_col * (nb_procs - (i+1))); // inversion pour serpentin
+				indice_debut = (i + j * nb_blocks / nb_procs ) * (block_nb_col * m) ;
+				//indice_debut += ((j%2) * block_nb_col * (nb_procs - (i+1))); // inversion pour serpentin
 				printf("indice début: %d\n", indice_debut);
-				MPI_Send(&(matrice[indice_debut]), 1, object, i, i, MPI_COMM_WORLD);
+				MPI_Send(&matrice + indice_debut, 1, object, i, i, MPI_COMM_WORLD);
 			}
 		}		
 	}
     else
     {
-		for(int j = 0; j < nb_blocks; j++)
+		for(int j = 0; j < nb_blocks/block_nb_col; j++)
 		{
 			indice_debut = j * block_nb_col * m;
 			MPI_Recv(&recv_mat[indice_debut],block_nb_col * m , MPI_DOUBLE, 0, myrank, MPI_COMM_WORLD, &status);
