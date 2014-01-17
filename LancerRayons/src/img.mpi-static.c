@@ -26,7 +26,11 @@
 #include "bnd.h"
 #include "cmr.h"
 
+#include "util.h"
+#include <mpi.h>
 
+#define TAILLE 8
+#define MIN(x,y) ((x<y)?x:y)
 typedef struct {
   COUPLE  Pixel;
 } IMG_BASIC;
@@ -67,33 +71,56 @@ void
 img (const char *FileNameImg)
 {
   FILE   *FileImg;   
-  COLOR	 *TabColor, *Color;
+  COLOR	 *TabColor,*TabColor2, *Color;
   STRING Name;
-  INDEX	 i, j;
+  INDEX	 i, j,k;
   BYTE   Byte;
+  int *tab_carreaux;
+  int nb_carreaux;
+  int nb_carreaux_colonnes = (Img.Pixel.i+TAILLE-1)/TAILLE;
+  int nb_carreaux_lignes = (Img.Pixel.j+TAILLE-1)/TAILLE;
 
+  int myrank;
+  
   strcpy (Name, FileNameImg);
   strcat (Name, ".ppm");
   INIT_FILE (FileImg, Name, "w");
   fprintf (FileImg, "P6\n%d %d\n255\n", Img.Pixel.i, Img.Pixel.j);
-  INIT_MEM (TabColor, Img.Pixel.i, COLOR);
-
-  for (j = 0; j < Img.Pixel.j; j++) {
-    for (i = 0; i < Img.Pixel.i; i++) {
-      TabColor [i] = pixel_basic (i, j);
-    }
-    for (i = 0, Color = TabColor; i < Img.Pixel.i; i++, Color++) {
-      Byte = Color->r < 1.0 ? 255.0*Color->r : 255.0;
-      putc (Byte, FileImg);
-      Byte = Color->g < 1.0 ? 255.0*Color->g : 255.0;
-      putc (Byte, FileImg);
-      Byte = Color->b < 1.0 ? 255.0*Color->b : 255.0;
-      putc (Byte, FileImg);
-    }
-    fflush (FileImg);
-  }
-
-  EXIT_MEM (TabColor);
-  EXIT_FILE (FileImg);
+  INIT_MEM (TabColor, Img.Pixel.i*Img.Pixel.j, COLOR);
+  INIT_MEM (TabColor2, Img.Pixel.i*Img.Pixel.j, COLOR);
   
+    nb_carreaux = stocke_carreaux(&tab_carreaux, Img.Pixel.i, Img.Pixel.j, TAILLE);
+    MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
+
+	int I, J;
+	for (k=0; k<nb_carreaux; k++)
+	{
+		I = tab_carreaux[k]%nb_carreaux_colonnes;
+		J = tab_carreaux[k]/nb_carreaux_colonnes;
+		for (j = J*TAILLE; j < MIN((J+1)*TAILLE, Img.Pixel.j) ; j++) 
+		{
+			for (i = I*TAILLE; i < MIN((I+1)*TAILLE,Img.Pixel.i); i++)
+			{
+				TabColor [j*Img.Pixel.i+i] = pixel_basic (j, i);
+			}
+		}
+	}
+	MPI_Reduce(TabColor, TabColor2, Img.Pixel.i*Img.Pixel.j*3, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD); 
+	if(myrank==0)
+	{
+		for (i = 0, Color = TabColor2; i < Img.Pixel.i*Img.Pixel.j; i++, Color++) {
+		  Byte = Color->r < 1.0 ? 255.0*Color->r : 255.0;
+		  putc (Byte, FileImg);
+		  Byte = Color->g < 1.0 ? 255.0*Color->g : 255.0;
+		  putc (Byte, FileImg);
+		  Byte = Color->b < 1.0 ? 255.0*Color->b : 255.0;
+		  putc (Byte, FileImg);
+		}
+		fflush (FileImg);
+	  EXIT_FILE (FileImg);
+	}
+  EXIT_MEM (TabColor);
+  EXIT_MEM (TabColor2);
+  free(tab_carreaux);
+  MPI_Finalize();
 }
