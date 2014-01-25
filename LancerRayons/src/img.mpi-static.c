@@ -27,10 +27,8 @@
 #include "cmr.h"
 
 #include "util.h"
-#include <mpi.h>
+//~ #include <mpi.h>
 
-#define TAILLE 8
-#define MIN(x,y) ((x<y)?x:y)
 typedef struct {
   COUPLE  Pixel;
 } IMG_BASIC;
@@ -71,26 +69,21 @@ void
 img (const char *FileNameImg)
 {
 	FILE   *FileImg;
-	COLOR  *TabColor,*TabColor2, *Color;
+	COLOR  *TabColor, *Color;
 	STRING Name;
 	INDEX  i, j,k;
 	BYTE   Byte;
 	int *tab_carreaux;
-	int nb_carreaux;
+	int nb_carreaux, myrank;
 	int nb_carreaux_colonnes = (Img.Pixel.i+TAILLE-1)/TAILLE;
-	int nb_carreaux_lignes = (Img.Pixel.j+TAILLE-1)/TAILLE;
-
-	int myrank;
 
 	strcpy (Name, FileNameImg);
 	strcat (Name, ".ppm");
 	INIT_FILE (FileImg, Name, "w");
 	fprintf (FileImg, "P6\n%d %d\n255\n", Img.Pixel.i, Img.Pixel.j);
 	INIT_MEM (TabColor, Img.Pixel.i*Img.Pixel.j, COLOR);
-	INIT_MEM (TabColor2, Img.Pixel.i*Img.Pixel.j, COLOR);
 
-	nb_carreaux = stocke_carreaux(&tab_carreaux, Img.Pixel.i, Img.Pixel.j, TAILLE);
-	MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
+	nb_carreaux = stocke_carreaux(&tab_carreaux, Img.Pixel.i, Img.Pixel.j, TAILLE, &myrank);
 
 	int I, J;
 	for (k=0; k<nb_carreaux; k++)
@@ -106,11 +99,11 @@ img (const char *FileNameImg)
 		}
 	}
 	
-	MPI_Reduce(TabColor, TabColor2, Img.Pixel.i*Img.Pixel.j*3, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
+	reduce_in_place(TabColor, Img.Pixel.i*Img.Pixel.j*3, 0);
 	
-	if(myrank==0)
-	{
-		for (i = 0, Color = TabColor2; i < Img.Pixel.i*Img.Pixel.j; i++, Color++) {
+	if(myrank == 0)
+	{		
+		for (i = 0, Color = TabColor; i < Img.Pixel.i*Img.Pixel.j; i++, Color++) {
 		  Byte = Color->r < 1.0 ? 255.0*Color->r : 255.0;
 		  putc (Byte, FileImg);
 		  Byte = Color->g < 1.0 ? 255.0*Color->g : 255.0;
@@ -122,7 +115,5 @@ img (const char *FileNameImg)
 	  EXIT_FILE (FileImg);
 	}
 	EXIT_MEM (TabColor);
-	EXIT_MEM (TabColor2);
-	free(tab_carreaux);
-	MPI_Finalize();
+	liberation(tab_carreaux);
 }
