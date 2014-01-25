@@ -41,7 +41,7 @@
 \clearpage
 \section{Introduction}
 
-Dans la continuation du TP précédent, nous avons tenté d'implémenter des fonctions faisant partie de BLAS, ceci dans le but de réaliser une factorisation LU d'une matrice de manière parallèle. Nous avons d'abord procédé à la création d'une version séquentielle scalaire, puis par bloc, pour enfin nous intéresser à la parallélisation grâce à MPI. Chacune des versions faisant appel à la précédente, il était indispensable de procéder dans cet ordre. Il est intéressant de noter que plus l'on avançait dans les étapes, plus la difficulté augmentait. Nous détaillerons par la suite celles que nous avons rencontré.
+Dans la continuation du TP précédent, nous avons tenté d'implémenter des fonctions faisant partie de BLAS, ceci dans le but de réaliser une factorisation LU d'une matrice de manière parallèle. Nous avons d'abord procédé à la création d'une version séquentielle scalaire, puis par bloc, pour enfin nous intéresser à la parallélisation grâce à MPI. Chacune des versions faisant appel à la précédente, il était indispensable de procéder dans cet ordre. Il est intéressant de noter que plus l'on avançait dans les étapes, plus la difficulté augmentait. Nous détaillerons par la suite celles que nous avons rencontrées.
 
 \section{Version séquentielle}
 
@@ -64,21 +64,21 @@ En outre, certaines fonctions créées auparavant ont été utilisées :
 \item dgemm
 \end{itemize}
 
-Premièrement, des versions sans pivot ont été faites, dans le but de simplifier le problème. Le pivot est utile premièrement afin que les calculs soient possibles lorsque l'on a un $0$ sur la diagonale, secondement afin de limiter les erreurs d'approximation dûs aux calculs flottants. En effet, en échangeant chaque ligne avec celle ayant le terme diagonal le plus élevé en valeur absolue, on rend les arrondis plus insignifiants lorsque l'on effectue des divisions par celle-ci.
+Premièrement, des versions sans pivot ont été faites, dans le but de simplifier le problème. Le pivot est utile premièrement afin que les calculs soient possibles lorsque l'on a un $0$ sur la diagonale, secondement afin de limiter les erreurs d'approximation dûs aux calculs flottants. En effet, en échangeant chaque ligne avec celle ayant le terme diagonal le plus élevé en valeur absolue, les effets d'absorption et les approximations sont réduits.
 
-Toutefois, l'intérêt de faire les versions sans pivot est remis en question, car faire une échange de ligne n'est pas ce qu'il y a de plus compliqué, et cela permet d'éviter certains écueils notamment lorsque l'on veut tester les fonctions sur des matrices réelles. Et dans les faits, rajouter le pivot nous a permis de corriger certains bogues.
+Toutefois, l'intérêt de faire les versions sans pivot est remis en question, car faire un échange de ligne ne rajoute pas de complexité de codage, tout du moins pour dgetf2,, et cela permet d'éviter certains écueils notamment lorsque l'on veut tester les fonctions sur des matrices réelles. Dans les faits, rajouter le pivot nous a permis de corriger certains bogues.
 
-La factorisation LU scalaire est réalisée par la fonction dgetf2, qui fait appel à dger et dscal. Composée d'une simple boucle d'appels à ces deux fonctions, peu de difficultés ont été rencontrées.
+La factorisation LU scalaire est réalisée par la fonction dgetf2, qui fait appel à dger et dscal. Composée d'une simple boucle d'appels à ces deux fonctions, peu de difficultés ont été rencontrées. Pour la version avec pivot, un simple échange de ligne est effectué à chaque tour de boucle.
 
-Ensuite, il a fallu effectué la même chose mais par bloc. La fonction dgetrf se charge de cette tâche, en faisant appel à dgetf2, dtrsm, et dgemm. Sur chacun des blocs, une factorisation %TODO or not TODO
+Ensuite, il a fallu effectuer la même chose mais par bloc. La fonction dgetrf se charge de cette tâche, en faisant appel à dgetf2, dtrsm, et dgemm. Sur chacun des blocs diagonaux, une factorisation LU est effectuée avant de propager les contributions des blocs extérieurs à la sous-matrice.
 
-Cette fois, quelque problèmes de codage ont été rencontrés même si l'algorithme général était compris. Notamment, en dépit de l'apparente justesse des algorithmes il est apparu que l'on obtenait des erreurs d'un ordre de grandeur très important.
+Cette fois, quelque problèmes de codage ont été rencontrés même si l'algorithme général était compris. Notamment, en dépit de l'apparente justesse des algorithmes, il est survenu des erreurs d'un ordre de grandeur très important. Malgré nos tests sur les fonctions intermédiaires, ils nous a été impossible, pour le moment, de déterminer les raisons de cet échec. De plus, nous n'avons effectué aucun test de performances en raison de l'inexactitude des résultats obtenus : tester une fonction incorrecte nous parait inutile.
 
 \section{Version parallèle}
 
-La version parallèle se base sur les travaux réalisés en séquentiel, auquels se greffe MPI afin de réaliser un ordonnancement et les communications entre les processus. En effet, nous avons déjà un algorithme afin de résoudre le problème par bloc, il faut ensuite faire traiter les blocs par des processus différents, communiquer entre les blocs les informations nécessaires.
+La version parallèle se base sur les travaux réalisés en séquentiel, auxquels se greffe MPI afin de réaliser un ordonnancement et les communications entre les processus. En effet, nous avons déjà un algorithme afin de résoudre le problème par bloc, il faut ensuite faire traiter les blocs par des processus différents, ainsi que communiquer entre les blocs les informations nécessaires.
 
-Il a été demandé de travailler sur une distribution bloc colonne en serpentin, ce qui a priori ne rajoute pas de difficulté mais est un simple choix. Un début de communication MPI en serpentin a été implémenté, il ne reste qu'à coupler ceci avec la factorisation LU. En conséquence, il n'a pas été possible d'effectuer des tests de performances pertinents.
+Il a été demandé de travailler sur une distribution bloc colonne en serpentin. Cette distribution en mémoire partagée permet de réaliser l'opération dgetf2 de façon locale sur le processus concerné. Des communications doivent être réalisées afin de pivoter les lignes ainsi que pour effectuer les dtrsm et les dgemm.  Un début de communication MPI en serpentin a été implémenté, il ne reste qu'à coupler ceci avec la factorisation LU. En conséquence, il n'a pas été possible d'effectuer des tests.
 
 \section{Conclusion}
 
