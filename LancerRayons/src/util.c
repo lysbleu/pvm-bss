@@ -22,7 +22,6 @@ int choix_N(const int nb_procs, const int nb_tuiles)
 int stocke_carreaux(int ** tab_carreaux, const int i, const int j, const int taille, int *myrank)
 {
 	int size,N,k;
-	//~ int myrank;
 	MPI_Init(NULL,NULL);
 	MPI_Comm_size(MPI_COMM_WORLD,&size);
 	MPI_Comm_rank(MPI_COMM_WORLD,myrank);
@@ -30,7 +29,7 @@ int stocke_carreaux(int ** tab_carreaux, const int i, const int j, const int tai
 	int nb_tuiles = nb_carreaux(i,j, taille);
 	int my_nb_tuiles = nb_tuiles/size+(((*myrank)<(nb_tuiles%size))?1:0);
 	int nb_tuiles_precedentes = (((*myrank)<(nb_tuiles%size))?(*myrank):(nb_tuiles%size)) + (*myrank)*(nb_tuiles/size);
-	printf("proc %d : nb_tuiles prec:%d nb_tuiles:%d nb % reste:%d\n", (*myrank), nb_tuiles_precedentes,my_nb_tuiles,nb_tuiles%size); 
+	//~ printf("proc %d : nb_tuiles prec:%d nb_tuiles:%d nb % reste:%d\n", (*myrank), nb_tuiles_precedentes,my_nb_tuiles,nb_tuiles%size); 
 		
 	*tab_carreaux = calloc(my_nb_tuiles, sizeof(int));
 	N = choix_N(size, nb_tuiles);
