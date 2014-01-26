@@ -8,13 +8,12 @@
 int _index_tache_courante_, _nb_taches_;
 int _recu_terminaison_ = 0;
 int _envoi_terminaison_ = 0;
-pthread_mutex_t  _mutex_tache_courante_ = PTHREAD_MUTEX_INITIALIZER;
-
+pthread_mutex_t _mutex_tache_courante_ = PTHREAD_MUTEX_INITIALIZER;
 void *communication(void *arg)
 {
 	int myrank, size, donnees_recues, donnees_envoyees;
-	int *taches = arg;
-
+	int **taches = arg;
+	int taille_allouee = _nb_taches_;
 	int flag, demande_en_cours;
 	demande_en_cours = 0;
 
@@ -47,10 +46,10 @@ void *communication(void *arg)
 				else if (_nb_taches_ -(_index_tache_courante_+1)>=2)
 				{
 					printf("Rang:%d Envoi Tache\n", myrank);
-					pthread_mutex_lock(&_mutex_tache_courante_);
-					donnees_envoyees = taches[_index_tache_courante_];
-					_index_tache_courante_++;
-					pthread_mutex_unlock(&_mutex_tache_courante_);
+					//~ pthread_mutex_lock(&_mutex_tache_courante_);
+					_nb_taches_--;
+					donnees_envoyees = (*taches)[_nb_taches_];
+					//~ pthread_mutex_unlock(&_mutex_tache_courante_);
 					MPI_Send(&donnees_envoyees, 1, MPI_INT, donnees_recues, 1, MPI_COMM_WORLD);
 				}
 				else if(_envoi_terminaison_ !=1)
@@ -63,7 +62,14 @@ void *communication(void *arg)
 				case 1://reception donnees
 				demande_en_cours = 0;
 				printf("Rang:%d Donnees recues : %d Origine:%d\n", myrank, donnees_recues, status.MPI_SOURCE);
-				taches[_nb_taches_]=donnees_recues;
+				if(_nb_taches_ >= taille_allouee)
+				{
+					pthread_mutex_lock(&_mutex_tache_courante_);
+					*taches = realloc(*taches, (taille_allouee+10)*sizeof(int));
+					pthread_mutex_unlock(&_mutex_tache_courante_);
+					taille_allouee +=10;
+				}
+				(*taches)[_nb_taches_]=donnees_recues;
 				_nb_taches_++;
 				break;
 				case 2://terminaison

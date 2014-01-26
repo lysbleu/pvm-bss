@@ -53,7 +53,6 @@ void reduce_in_place(float *TabColor, int count, int root)
 	{
 		MPI_Reduce(TabColor, NULL, count, MPI_FLOAT, MPI_SUM, root, MPI_COMM_WORLD);
 	}
-	
 }
 
 void liberation(int* tab_carreaux)

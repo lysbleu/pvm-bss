@@ -33,7 +33,7 @@
 extern int _index_tache_courante_, _nb_taches_;
 extern int _recu_terminaison_;
 extern int _envoi_terminaison_;
-extern pthread_mutex_t  _mutex_tache_courante_;
+extern pthread_mutex_t _mutex_tache_courante_;
 
 typedef struct {
   COUPLE  Pixel;
@@ -93,7 +93,7 @@ img (const char *FileNameImg)
 	nb_carreaux = stocke_carreaux(&tab_carreaux, Img.Pixel.i, Img.Pixel.j, TAILLE, &myrank);
 	_nb_taches_ = nb_carreaux;
 	_index_tache_courante_ = 0;
-	pthread_create(&thread_communication, NULL, communication, tab_carreaux);
+	pthread_create(&thread_communication, NULL, communication, &tab_carreaux);
 
 	int I, J;
 
