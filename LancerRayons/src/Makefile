@@ -140,7 +140,9 @@ lanceur-mpithread.o : lanceur.c
 	
 util.o : util.c
 	$(MPICC) -c -o util.o util.c
-
+	
+vol_tache.o : vol_tache.c
+	$(MPICC) -c -o vol_tache.o vol_tache.c
 
 lanceur: lanceur.o $(OBJ) $(SRC_IMAGE:.c=.o)
 	$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
@@ -148,7 +150,7 @@ lanceur: lanceur.o $(OBJ) $(SRC_IMAGE:.c=.o)
 lanceur-mpistatic: lanceur-mpistatic.o $(OBJ) $(SRC_MPI_STATIC_IMAGE:.c=.o) util.o
 	$(MPICC) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
-lanceur-mpidynamic: lanceur-mpidynamic.o $(OBJ) $(SRC_MPI_DYN_IMAGE:.c=.o)
+lanceur-mpidynamic: lanceur-mpidynamic.o $(OBJ) $(SRC_MPI_DYN_IMAGE:.c=.o) util.o vol_tache.o
 	$(MPICC) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 lanceur-mpithread: lanceur-mpithread.o $(OBJ) $(SRC_MPI_THREAD_IMAGE:.c=.o)

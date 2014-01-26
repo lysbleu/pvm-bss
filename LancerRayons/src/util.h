@@ -5,7 +5,7 @@
 #define TAILLE 8
 #endif /*TAILLE*/
 
-#ifndef MIN(x,y)
+#ifndef MIN
 #define MIN(x,y) ((x<y)?x:y)
 #endif /*MIN*/
 
