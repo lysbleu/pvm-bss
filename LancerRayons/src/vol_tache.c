@@ -8,6 +8,7 @@
 int _index_tache_courante_, _nb_taches_;
 int _recu_terminaison_ = 0;
 int _envoi_terminaison_ = 0;
+pthread_mutex_t _mutex_dernier_element_ = PTHREAD_MUTEX_INITIALIZER;
 
 void *communication(void *arg)
 {
@@ -59,9 +60,11 @@ void *communication(void *arg)
 				case 1://reception donnees
 				demande_en_cours = 0;
 				printf("Rang:%d Donnees recues : %d Origine:%d\n", myrank, donnees_recues, status.MPI_SOURCE);
+				pthread_mutex_lock(&_mutex_dernier_element_);
 				(*taches)[0]=donnees_recues;
 				_nb_taches_ = 1;
 				_index_tache_courante_ = 0;
+				pthread_mutex_unlock(&_mutex_dernier_element_);
 				break;
 				case 2://terminaison
 				printf("Rang:%d Envoi Terminaison : %d Recu Fin\n", myrank, _recu_terminaison_);
