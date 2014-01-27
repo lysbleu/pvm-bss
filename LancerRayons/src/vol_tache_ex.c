@@ -38,7 +38,6 @@ void generation_aleatoire(int **taches)
 int main(int argc, char* argv[])
 {
 	int *taches;
-	//~ int index;
 	pthread_t thread_communication;
 	
 	generation_aleatoire(&taches);
@@ -50,9 +49,6 @@ int main(int argc, char* argv[])
 	{		
 		if(_index_tache_courante_<_nb_taches_)
 		{
-			//~ pthread_mutex_lock(&_mutex_tache_courante_);
-			//~ index = _index_tache_courante_;
-			//~ pthread_mutex_unlock(&_mutex_tache_courante_);
 			_index_tache_courante_++;
 			traitement_tache(taches[_index_tache_courante_-1]);
 		}

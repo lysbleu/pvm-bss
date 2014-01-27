@@ -33,7 +33,6 @@
 extern int _index_tache_courante_, _nb_taches_;
 extern int _recu_terminaison_;
 extern int _envoi_terminaison_;
-extern pthread_mutex_t _mutex_tache_courante_;
 
 typedef struct {
   COUPLE  Pixel;
@@ -98,19 +97,19 @@ img (const char *FileNameImg)
 	int I, J;
 
 	while(_index_tache_courante_ < _nb_taches_ || !_recu_terminaison_ || !_envoi_terminaison_)
-	//~ for (k=0; k<nb_carreaux; k++)
 	{
-		pthread_mutex_lock(&_mutex_tache_courante_);
-		I = tab_carreaux[_index_tache_courante_]%nb_carreaux_colonnes;
-		J = tab_carreaux[_index_tache_courante_]/nb_carreaux_colonnes;
-		_index_tache_courante_++;
-		pthread_mutex_unlock(&_mutex_tache_courante_);
-		
-		for (j = J*TAILLE; j < MIN((J+1)*TAILLE, Img.Pixel.j) ; j++)
+		if(_index_tache_courante_ < _nb_taches_)
 		{
-			for (i = I*TAILLE; i < MIN((I+1)*TAILLE,Img.Pixel.i); i++)
+			I = tab_carreaux[_index_tache_courante_]%nb_carreaux_colonnes;
+			J = tab_carreaux[_index_tache_courante_]/nb_carreaux_colonnes;
+			_index_tache_courante_++;
+			
+			for (j = J*TAILLE; j < MIN((J+1)*TAILLE, Img.Pixel.j) ; j++)
 			{
-				TabColor [i*Img.Pixel.j+j] = pixel_basic (i, j);
+				for (i = I*TAILLE; i < MIN((I+1)*TAILLE,Img.Pixel.i); i++)
+				{
+					TabColor [i*Img.Pixel.j+j] = pixel_basic (i, j);
+				}
 			}
 		}
 	}
