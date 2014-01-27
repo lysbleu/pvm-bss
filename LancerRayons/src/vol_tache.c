@@ -5,6 +5,8 @@
 #include <time.h>
 #include <pthread.h>
 
+//~ #define _AFFICHE_ECHANGE_
+
 int _index_tache_courante_, _nb_taches_;
 int _recu_terminaison_ = 0;
 int _envoi_terminaison_ = 0;
@@ -14,7 +16,6 @@ void *communication(void *arg)
 {
 	int myrank, size, donnees_recues, donnees_envoyees;
 	int **taches = arg;
-	int taille_allouee = _nb_taches_;
 	int flag, demande_en_cours;
 	demande_en_cours = 0;
 
@@ -36,30 +37,40 @@ void *communication(void *arg)
 		{
 			switch(status.MPI_TAG){
 				case 0://demande de donnees
+				#ifdef _AFFICHE_ECHANGE_
 				printf("Rang:%d Recep donnees\n", myrank);
+				#endif /*_AFFICHE_ECHANGE_*/
 				if(donnees_recues == myrank && _envoi_terminaison_ !=1)
 				{
+					#ifdef _AFFICHE_ECHANGE_
 					printf("Rang:%d Envoi Fin\n", myrank);
+					#endif /*_AFFICHE_ECHANGE_*/
 					MPI_Send(&donnees_envoyees, 1, MPI_INT, (myrank+size+1)%size, 2, MPI_COMM_WORLD);
 					_envoi_terminaison_ =1;
 				} 
 				else if (_nb_taches_ -(_index_tache_courante_+1)>=2)
 				{
+					#ifdef _AFFICHE_ECHANGE_
 					printf("Rang:%d Envoi Tache\n", myrank);
+					#endif /*_AFFICHE_ECHANGE_*/
 					_nb_taches_--;
 					donnees_envoyees = (*taches)[_nb_taches_];
 					MPI_Send(&donnees_envoyees, 1, MPI_INT, donnees_recues, 1, MPI_COMM_WORLD);
 				}
 				else if(_envoi_terminaison_ !=1)
 				{
+					#ifdef _AFFICHE_ECHANGE_
 					printf("Rang:%d Transfert\n", myrank);
+					#endif /*_AFFICHE_ECHANGE_*/
 					donnees_envoyees = donnees_recues;
 					MPI_Start(&envoi);
 				}
 				break;
 				case 1://reception donnees
 				demande_en_cours = 0;
+				#ifdef _AFFICHE_ECHANGE_
 				printf("Rang:%d Donnees recues : %d Origine:%d\n", myrank, donnees_recues, status.MPI_SOURCE);
+				#endif /*_AFFICHE_ECHANGE_*/
 				pthread_mutex_lock(&_mutex_dernier_element_);
 				(*taches)[0]=donnees_recues;
 				_nb_taches_ = 1;
@@ -67,7 +78,9 @@ void *communication(void *arg)
 				pthread_mutex_unlock(&_mutex_dernier_element_);
 				break;
 				case 2://terminaison
+				#ifdef _AFFICHE_ECHANGE_
 				printf("Rang:%d Envoi Terminaison : %d Recu Fin\n", myrank, _recu_terminaison_);
+				#endif /*_AFFICHE_ECHANGE_*/
 				_recu_terminaison_ = 1;
 				if(_envoi_terminaison_ != 1)
 				{
@@ -87,7 +100,9 @@ void *communication(void *arg)
 			MPI_Request_get_status(envoi, &flag, &status);
 			if(flag && (demande_en_cours == 0) && (_recu_terminaison_ == 0) && (_envoi_terminaison_ == 0))
 			{
+				#ifdef _AFFICHE_ECHANGE_
 				printf("Rang:%d Envoi demande données\n", myrank);
+				#endif /*_AFFICHE_ECHANGE_*/
 				demande_en_cours = 1;
 				donnees_envoyees = myrank;
 				MPI_Start(&envoi);

@@ -139,10 +139,13 @@ lanceur-mpithread.o : lanceur.c
 	$(MPICC) -DMPITHREAD $(CPPFLAGS) $(CFLAGS)  -c $< -o $@
 	
 util.o : util.c
-	$(MPICC) -c -o util.o util.c
+	$(MPICC) -c -o util.o util.c -Wall -Wextra
 	
 vol_tache.o : vol_tache.c
-	$(MPICC) -c -o vol_tache.o vol_tache.c
+	$(MPICC) -c -o vol_tache.o vol_tache.c -Wall -Wextra
+	
+vol_tache_ex : vol_tache_ex.c vol_tache.o
+	$(MPICC) -o vol_tache_ex vol_tache.o vol_tache_ex.c -lpthread -Wall -Wextra
 
 lanceur: lanceur.o $(OBJ) $(SRC_IMAGE:.c=.o)
 	$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
@@ -151,10 +154,10 @@ lanceur-mpistatic: lanceur-mpistatic.o $(OBJ) $(SRC_MPI_STATIC_IMAGE:.c=.o) util
 	$(MPICC) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 lanceur-mpidynamic: lanceur-mpidynamic.o $(OBJ) $(SRC_MPI_DYN_IMAGE:.c=.o) util.o vol_tache.o
-	$(MPICC) $(LDFLAGS) $^ $(LDLIBS) -o $@
+	$(MPICC) $(LDFLAGS) $^ $(LDLIBS) -lpthread -o $@
 
 lanceur-mpithread: lanceur-mpithread.o $(OBJ) $(SRC_MPI_THREAD_IMAGE:.c=.o)
-	$(MPICC) $(LDFLAGS) $^ $(LDLIBS) -o $@
+	$(MPICC) $(LDFLAGS) $^ $(LDLIBS) -lpthread -o $@
 
 .c.o :
 	$(CC) $(CPPFLAGS) $(CFLAGS)  -c $<
@@ -167,7 +170,7 @@ lanceur-mpithread: lanceur-mpithread.o $(OBJ) $(SRC_MPI_THREAD_IMAGE:.c=.o)
 lanceur.o: getarg.h
 lanceur.o: ../include/exit-if.h ../include/const.h ../include/macro.h
 lanceur.o: ../include/type.h lanceur.h read_file.h bnd.h
-lanceur.o: ../include/type_spec.h ett.h geo.h scn.h img.h
+lanceur.o: ../include/type_spec.h geo.h scn.h img.h
 bnd.basic.o: ../include/macro.h
 bnd.basic.o: ../include/exit-if.h ../include/const.h
 bnd.basic.o: ../include/type.h ../include/type_spec.h ett.h geo.h class.h
