@@ -62,6 +62,6 @@ Au niveau de l'implémentation,
 
 
 \section{Conclusion}
-
+Le premier objectif de ce TP était avant tout de parallèliser le code de calcul du lancer de rayons en mettant en place une nouvelle politique de partage des données. En effet l'image traitée pouvant être très irrégulière, il était essentiel d'assigner les carreaux à chaque processus de manière homogène sur toute l'étendue de l'image. Malgrès celà, la question de l'équilibrage des charges n'était pas encore totalement résolue, car même si tous les processus ont initialement autant de données initiales à traiter, réparties sur toute l'image traitée, il est toujours possible que certains finissent largement avant les autres et restent inactifs jusqu'à la terminaison de tous les processus.  Il a donc été décidé d'utiliser une structure en anneau pour mettre en place un politique de vol de travail, où chaque processus qui aurait consommé toutes ses données enverrai une requette sur l'anneau pour en obtenir de nouvelles, prises dans les données restantes d'un autre processus. Une nouvelle problématique apparaît alors, et a été une des difficultés importantes abordées dans ce TP: la question de la détection de la terminaison de l'algorithme, sur l'anneau, lorsque tous les noeuds ont terminé leur travail.
 
 \end{document}
