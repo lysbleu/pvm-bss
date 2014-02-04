@@ -49,7 +49,9 @@ Paralléliser un lancer de rayons consiste essentiellement à distribuer les dif
 
 De manière pratique, un rayon correspond à un pixel, et les pixels sont regroupés par groupe de $8 \times 8$ ou $16 \times 16$ contigus sur l'image pour créer une tâche. Ces groupes de pixels seront appelés \emph{carreaux}. 
 
-Afin d'obtenir des performances optimales, la répartition des tâches doit se faire sans communications. Autrement dit, chaque processus doit pouvoir déterminer par lui même quelles sont ses tâches, ceci sans créer de conflits avec les autres processus. Une solution pourrait être que chaque processus se charge des $N$ premiers carreaux ($N = \left[\frac{\#\mathrm{rayons}}{\#\mathrm{processus}}\right]$)
+Dans un premier temps, les carreaux sont distribués de manière statique. Afin d'obtenir des performances optimales, la répartition des tâches doit se faire sans communications. Autrement dit, chaque processus doit pouvoir déterminer par lui même quelles sont ses tâches, ceci sans créer de conflits avec les autres. Une solution pourrait être que chaque processus se charge des $N$ premiers carreaux ($N = \left[\frac{\#\mathrm{rayons}}{\#\mathrm{processus}}\right]$), le dernier s'occupant du reste. Le problème est qu'il existe un déséquilibre au niveau de la répartition des carrreaux, ce qui va entrainer une perte d'efficacité, car le dernier processus à une forte probabilité de finir son exécution avant les autres, étant donné qu'il a moins de carreaux à traiter. 
+
+
 
 
 \section{Vol de travail}
