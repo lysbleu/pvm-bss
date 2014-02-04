@@ -45,8 +45,20 @@ Afin de représenter une scène, potentiellement dynamique, sur un ordinateur, u
 
 \section{Version parallèle}
 
+Paralléliser un lancer de rayons consiste essentiellement à distribuer les différentes tâches de manière homogène entre les processus. En effet, étant donné qu'il n'y  a pas de dépendances entres les données, chaque processus exécute les calculs sur une fraction des rayons, de manière séquentielle, sans se préoccuper du restant de l'exécution. La version séquentielle étant fournie, la version parallèle se greffe sur celle-ci sans modifier outre mesure son code.
+
+De manière pratique, un rayon correspond à un pixel, et les pixels sont regroupés par groupe de $8 \times 8$ ou $16 \times 16$ contigus sur l'image pour créer une tâche. Ces groupes de pixels seront appelés \emph{carreaux}. 
+
+Afin d'obtenir des performances optimales, la répartition des tâches doit se faire sans communications. Autrement dit, chaque processus doit pouvoir déterminer par lui même quelles sont ses tâches, ceci sans créer de conflits avec les autres processus. Une solution pourrait être que chaque processus se charge des $N$ premiers carreaux ($N = \left[\frac{\#\mathrm{rayons}}{\#\mathrm{processus}}\right]$)
+
 
 \section{Vol de travail}
+
+Le vol de travail consiste, lorsqu'un processus n'a plus de tâches à accomplir, à en demander aux autres processus. Un message est envoyé au processus suivant sur l'anneau, et l'on attend la réponse. Lorsqu'un processus reçoit une demande de travail, il regarde s'il lui en reste sur sa file de tâche. Si oui, alors une réponse positive est envoyée directement au processus qui l'a demandé. Si non, alors la demande est transférée au processus suivant.
+
+Le processus oisif recevra forcément une réponse, que ça soit du travail à accomplir ou sa propre demande. Si l'on se trouve dans ce dernier cas, alors cela signifie que l'exécution de tous les calculs est sur le point de se terminer, on envoie sur l'anneau un message de terminaison. Lorsqu'un message de terminaison est reçu, cela signifie qu'un autre processus a cherché du travail et qu'il n'en a pas trouvé. Par conséquent, lorsque le processus doit chercher du travail, il ne le fait pas et se termine à la place.
+
+Au niveau de l'implémentation, 
 
 
 \section{Conclusion}
