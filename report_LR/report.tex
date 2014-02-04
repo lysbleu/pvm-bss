@@ -29,11 +29,11 @@
     \vspace*{1cm}
         
     \rule{0.75\linewidth}{0.7mm}\\[0.4cm]
-    {\Huge Rapport TP5 --- BLAS\\[0.4cm]}
+    {\Huge Rapport TP6 --- Lancer de rayons\\[0.4cm]}
     \rule{0.75\linewidth}{0.7mm} \\[1.5cm]
 
     {\Large Bazire \bsc{Houssin}\\Sylvain \bsc{Vaglica}\\Stéphane \bsc{Castelli}\\[2cm]}
-    {\Large Vendredi 17 Janvier 2014}
+    {\Large Dimanche 2 Février 2014}
   \end{center}
 \end{titlepage}
 
@@ -41,44 +41,11 @@
 \clearpage
 \section{Introduction}
 
-Dans la continuation du TP précédent, nous avons tenté d'implémenter des fonctions faisant partie de BLAS, ceci dans le but de réaliser une factorisation LU d'une matrice de manière parallèle. Nous avons d'abord procédé à la création d'une version séquentielle scalaire, puis par bloc, pour enfin nous intéresser à la parallélisation grâce à MPI. Chacune des versions faisant appel à la précédente, il était indispensable de procéder dans cet ordre. Il est intéressant de noter que plus l'on avançait dans les étapes, plus la difficulté augmentait. Nous détaillerons par la suite celles que nous avons rencontrées.
-
-\section{Version séquentielle}
-
-Afin de réaliser une factorisation LU, toute les fonctions BLAS ne sont pas requises. Seules celles nécessaires ont donc été codées :
-
-\begin{itemize}
-\item dgetf2
-\item dtrsm
-\item dgesv
-\item dgetrs\footnote{En réalité, celle-ci n'a pas été utilisée}
-\item dgetrf
-\item dscal
-\end{itemize}
-
-En outre, certaines fonctions créées auparavant ont été utilisées : 
-
-
-\begin{itemize}
-\item dger
-\item dgemm
-\end{itemize}
-
-Premièrement, des versions sans pivot ont été faites, dans le but de simplifier le problème. Le pivot est utile premièrement afin que les calculs soient possibles lorsque l'on a un $0$ sur la diagonale, secondement afin de limiter les erreurs d'approximation dûs aux calculs flottants. En effet, en échangeant chaque ligne avec celle ayant le terme diagonal le plus élevé en valeur absolue, les effets d'absorption et les approximations sont réduits.
-
-Toutefois, l'intérêt de faire les versions sans pivot est remis en question, car faire un échange de ligne ne rajoute pas de complexité de codage, tout du moins pour dgetf2,, et cela permet d'éviter certains écueils notamment lorsque l'on veut tester les fonctions sur des matrices réelles. Dans les faits, rajouter le pivot nous a permis de corriger certains bogues.
-
-La factorisation LU scalaire est réalisée par la fonction dgetf2, qui fait appel à dger et dscal. Composée d'une simple boucle d'appels à ces deux fonctions, peu de difficultés ont été rencontrées. Pour la version avec pivot, un simple échange de ligne est effectué à chaque tour de boucle.
-
-Ensuite, il a fallu effectuer la même chose mais par bloc. La fonction dgetrf se charge de cette tâche, en faisant appel à dgetf2, dtrsm, et dgemm. Sur chacun des blocs diagonaux, une factorisation LU est effectuée avant de propager les contributions des blocs extérieurs à la sous-matrice.
-
-Cette fois, quelque problèmes de codage ont été rencontrés même si l'algorithme général était compris. Notamment, en dépit de l'apparente justesse des algorithmes, il est survenu des erreurs d'un ordre de grandeur très important. Malgré nos tests sur les fonctions intermédiaires, ils nous a été impossible, pour le moment, de déterminer les raisons de cet échec. De plus, nous n'avons effectué aucun test de performances en raison de l'inexactitude des résultats obtenus : tester une fonction incorrecte nous parait inutile.
+Afin de représenter une scène, potentiellement dynamique, sur un ordinateur, une technique courante est le lancer de rayons (\emph{ray tracing}). Celle-ci se base sur le principe de retour inverse de la lumière, en effet au lieu de calculer les trajectoires des rayons de lumière pour chacune des sources, ce qui représente un gaspillage de ressources car la plupart de ceux-ci n'atteignent pas l'observateur, on calcule la trajectoire de rayons de lumière qui partiraient de l'observateur pour aller vers les surfaces environnantes. Ainsi, on ne calcule que ce qui est observable. Cette technique a ceci de particulier qu'elle est fortement parallélisable, car chacun des rayons est indépendant des autres. En partant de la version séquentielle de l'algorithme, on implémentera une version parallèle. Ensuite, on mettera en pratique la technique du \emph{vol de travail}.
 
 \section{Version parallèle}
 
-La version parallèle se base sur les travaux réalisés en séquentiel, auxquels se greffe MPI afin de réaliser un ordonnancement et les communications entre les processus. En effet, nous avons déjà un algorithme afin de résoudre le problème par bloc, il faut ensuite faire traiter les blocs par des processus différents, ainsi que communiquer entre les blocs les informations nécessaires.
 
-Il a été demandé de travailler sur une distribution bloc colonne en serpentin. Cette distribution en mémoire partagée permet de réaliser l'opération dgetf2 de façon locale sur le processus concerné. Des communications doivent être réalisées afin de pivoter les lignes ainsi que pour effectuer les dtrsm et les dgemm.  Un début de communication MPI en serpentin a été implémenté, il ne reste qu'à coupler ceci avec la factorisation LU. En conséquence, il n'a pas été possible d'effectuer des tests.
 
 \section{Conclusion}
 
